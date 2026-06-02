@@ -99,6 +99,7 @@ body{margin:0;padding:40px 16px 90px;min-height:100vh;
   box-shadow:-3px 3px 8px rgba(0,0,0,.25);clip-path:polygon(100% 0,0 0,100% 100%);
   transition:width .18s,height .18s,box-shadow .18s;}
 .peel:hover{width:80px;height:80px;box-shadow:-6px 6px 14px rgba(0,0,0,.35);}
+a.peel{text-decoration:none;color:inherit;display:block;}
 
 /* 报头 */
 .masthead{text-align:center;border-bottom:4px double var(--rule);padding-bottom:14px;}
@@ -183,7 +184,7 @@ _JS = """
   var fine=window.matchMedia&&window.matchMedia('(pointer:fine)').matches;
   document.querySelectorAll('.sheet').forEach(function(sheet){
     var peel=sheet.querySelector('.peel');
-    if(peel) peel.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+    if(peel&&peel.tagName!=='A') peel.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
     if(reduce||!fine) return;
     sheet.addEventListener('mousemove',function(e){
       var r=sheet.getBoundingClientRect();
@@ -231,6 +232,12 @@ def _render_epic_page(sec: Section, idx: int, total: int, archive_href: str) -> 
     )
 
 
+def _peel(prev_href: str | None) -> str:
+    if prev_href:
+        return f'<a class="peel" href="{_esc(prev_href)}" title="前一天报纸"></a>'
+    return '<div class="peel" title="回到顶部"></div>'
+
+
 def _wrap_page(name: str, idx: int, total: int, inner: str, archive_href: str) -> str:
     return (
         f'<div class="sheet" id="page-{idx}"><div class="peel" title="回到顶部"></div>'
@@ -243,6 +250,7 @@ def _wrap_page(name: str, idx: int, total: int, inner: str, archive_href: str) -
 def _render_front(
     *, title, masthead_en, issue, dt, weather: Section | None,
     headline: Section | None, index_entries, total, archive_href, show_summary,
+    prev_href: str | None = None,
 ) -> str:
     wbar = ""
     if weather and weather.text:
@@ -278,7 +286,7 @@ def _render_front(
     index = f'<aside class="index"><h3>本期导读</h3><ul>{idx_items}</ul></aside>'
 
     return (
-        '<div class="sheet front" id="page-1"><div class="peel" title="回到顶部"></div>'
+        f'<div class="sheet front" id="page-1">{_peel(prev_href)}'
         '<header class="masthead">'
         f'<div class="corners"><span>{_esc(issue)}</span><span>AI 编纂 · 仅供阅读</span></div>'
         f'<h1 class="title">{_esc(title)}</h1><div class="subtitle">{_esc(masthead_en)}</div>'
@@ -296,6 +304,7 @@ def render_paper(
     issue_label: str | None = None,
     multi_page: bool = True,
     show_summaries: bool = True,
+    prev_href: str | None = None,
 ) -> str:
     """将 Digest 渲染为拟物多版报纸 HTML。"""
     dt = _parse_dt(digest.generated_at)
@@ -311,7 +320,7 @@ def render_paper(
 
     if not multi_page:
         # 单版：头条 + 全部版面塞进一张大报
-        body = _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries)
+        body = _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries, prev_href)
         return _document(title, masthead_en, body)
 
     # 多版：头版 + 每个版面一页
@@ -322,6 +331,7 @@ def render_paper(
             title=title, masthead_en=masthead_en, issue=issue, dt=dt, weather=weather,
             headline=headline, index_entries=index_entries, total=total,
             archive_href=archive_href, show_summary=show_summaries,
+            prev_href=prev_href,
         )
     ]
     for i, sec in enumerate(inner):
@@ -335,7 +345,7 @@ def render_paper(
     return _document(title, masthead_en, "".join(pages))
 
 
-def _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries) -> str:
+def _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries, prev_href=None) -> str:
     wbar = ""
     if weather and weather.text:
         wbar = f'<div class="weatherbar"><b>{_esc(weather.name)}</b>　{_esc(weather.text).splitlines()[0]}</div>'
@@ -347,7 +357,7 @@ def _render_single(title, masthead_en, issue, dt, weather, headline, inner, arch
         arts = "".join(_render_article(it, show_summaries) for it in sec.items)
         secs += f'<section><div class="pagehead"><h2>{_esc(sec.name)}</h2></div><div class="columns">{arts}</div></section>'
     return (
-        '<div class="sheet" id="page-1"><div class="peel"></div>'
+        f'<div class="sheet" id="page-1">{_peel(prev_href)}'
         '<header class="masthead">'
         f'<div class="corners"><span>{_esc(issue)}</span><span>AI 编纂</span></div>'
         f'<h1 class="title">{_esc(title)}</h1><div class="subtitle">{_esc(masthead_en)}</div>'
