@@ -145,3 +145,39 @@ def test_no_city_weather_keeps_old_weatherbar():
     html = render_paper(_sample_digest(), multi_page=True)
     assert 'class="city-current"' not in html
     assert "多云转晴" in html
+
+
+def test_paper_has_physical_reading_effects():
+    html = render_paper(_sample_digest(), multi_page=True)
+    assert "paper-settle" not in html
+    assert "settle-replay" in html
+    assert "dispatch_settle_intensity" in html
+    assert "dispatch_settle_motion_off" in html
+    assert "dispatch_drape_intensity_v1" in html
+    assert "scrollPauseMs=900" in html
+    assert "S(90,12)" in html
+    assert "ty:S(70,9)" in html
+    assert "settleImpulse(controllers,1.15)" in html
+    assert "window.paperSettle" in html
+    assert "window.setPaperIntensity" in html
+    assert "window.setDrapeIntensity" in html
+    assert "function drapeOn()" in html
+    assert "c.ry.t=clamp((px-.5)*3.4*drapeIntensity,-3.4,3.4)" in html
+    assert "c.rx.t=clamp((py-.4)*-2.8*drapeIntensity,-2.8,2.8)" in html
+    assert "perspective-origin:50% 30%" in html
+    assert 'class="has-motion-js"' in html
+    assert "translateY(-37px)" in html
+    assert "c.ty.x=-32*I" in html
+    assert "settleImpulse(visibleControllers(),.45)" in html
+    assert "--light-x" in html
+    assert "--paper-light-x" in html
+    assert 'content:"📌"' in html
+    assert ".lead-main::before" in html
+    assert ".art::after" in html
+    assert "border:2.2px dashed" in html
+    assert "border-radius:50% 48% 52% 49% / 44% 48% 52% 56%" in html
+    assert "outline:1.4px dashed" in html
+    assert "transform:rotate(-7deg) scaleX(.98) scaleY(.94)" in html
+    assert "outline-color:rgba(180,40,30,.13)" in html
+    assert "--pencil-loop" not in html
+    assert "pointermove" in html
