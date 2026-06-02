@@ -122,3 +122,41 @@ def fetch_weather(config: WeatherConfig) -> Optional[str]:
     summary = _build_weather_summary(data)
     logger.info("[weather] summary built, length=%d", len(summary))
     return summary
+
+
+def _fetch_single_city(
+    city_name: str, adcode: str, config: WeatherConfig, client: httpx.Client,
+) -> tuple[str, str | None]:
+    params = {
+        "city": city_name,
+        "adcode": adcode,
+        "extended": "true",
+        "hourly": "true",
+        "lang": "zh",
+    }
+    headers = {}
+    if config.api_key:
+        headers["Authorization"] = f"Bearer {config.api_key}"
+    try:
+        resp = client.get(config.api_url, params=params, headers=headers)
+        resp.raise_for_status()
+        data = resp.json()
+        summary = _build_weather_summary(data)
+        logger.info("[weather] city=%s fetched ok, len=%d", city_name, len(summary))
+        return city_name, summary
+    except Exception as e:
+        logger.warning("[weather] city=%s fetch failed: %s", city_name, e)
+        return city_name, None
+
+
+def fetch_weather_multi(
+    cities: list, config: WeatherConfig,
+) -> dict[str, str]:
+    results: dict[str, str] = {}
+    with httpx.Client(timeout=httpx.Timeout(15)) as client:
+        for city in cities:
+            name, summary = _fetch_single_city(city.name, city.adcode, config, client)
+            if summary is not None:
+                results[name] = summary
+    logger.info("[weather] multi-city fetch done: %d/%d succeeded", len(results), len(cities))
+    return results

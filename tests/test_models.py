@@ -79,3 +79,10 @@ def test_digest_default_rendered():
     )
     assert d.sections == []
     assert d.rendered.text is None and d.rendered.markdown is None
+
+
+def test_digest_extra_field():
+    d = Digest(id="t", title="test", generated_at="2026-01-01T00:00:00Z")
+    assert d.extra == {}
+    d.extra["city_weather"] = {"北京": "晴"}
+    assert d.extra["city_weather"]["北京"] == "晴"
