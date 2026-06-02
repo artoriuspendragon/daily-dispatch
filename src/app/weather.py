@@ -85,6 +85,25 @@ def _build_weather_summary(data: dict) -> str:
                     line += f" 降水量{fc_precip}mm"
                 lines.append(line)
 
+    # 生活指数
+    indices = data.get("life_indices", {})
+    if indices:
+        pick = ["clothing", "sunscreen", "car_wash", "exercise", "travel", "cold_risk"]
+        labels = {
+            "clothing": "穿衣", "sunscreen": "防晒", "car_wash": "洗车",
+            "exercise": "运动", "travel": "旅游", "cold_risk": "感冒",
+        }
+        parts = []
+        for key in pick:
+            idx = indices.get(key)
+            if idx and isinstance(idx, dict):
+                brief = idx.get("brief", "")
+                if brief:
+                    parts.append(f"{labels.get(key, key)}：{brief}")
+        if parts:
+            lines.append("")
+            lines.append("生活指数：" + "；".join(parts))
+
     return "\n".join(lines)
 
 
@@ -99,6 +118,7 @@ def fetch_weather(config: WeatherConfig) -> Optional[str]:
         "adcode": config.adcode,
         "extended": "true",
         "hourly": "true",
+        "indices": "true",
         "lang": "zh",
     }
     headers = {}
@@ -132,6 +152,7 @@ def _fetch_single_city(
         "adcode": adcode,
         "extended": "true",
         "hourly": "true",
+        "indices": "true",
         "lang": "zh",
     }
     headers = {}
