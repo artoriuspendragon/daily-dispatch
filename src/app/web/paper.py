@@ -91,7 +91,6 @@ body{margin:0;padding:40px 16px 90px;min-height:100vh;
   box-shadow:0 2px 0 #d9cfba, 0 30px 60px rgba(0,0,0,.55), inset 0 0 60px rgba(120,90,50,.10);
   transform-style:preserve-3d;will-change:transform;}
 .sheet.resetting{transition:transform .35s ease-out;}
-.sheet-wrap{perspective:2000px;}
 .sheet::before,.sheet::after{content:"";position:absolute;inset:0;background:var(--paper2);
   border-radius:2px;z-index:-1;box-shadow:0 18px 40px rgba(0,0,0,.4);}
 .sheet::before{transform:translate(6px,8px) rotate(.4deg);}
@@ -117,13 +116,16 @@ a.peel{text-decoration:none;color:inherit;display:block;}
 .weatherbar{margin:16px 0 4px;padding:10px 16px;border:1px solid #c9bfa0;border-left:4px solid var(--accent);
   background:rgba(255,255,255,.35);font-size:14px;line-height:1.65;}
 .weatherbar b{font-family:system-ui,sans-serif;color:var(--accent);letter-spacing:.1em;}
-.city-select{appearance:none;-webkit-appearance:none;border:none;border-bottom:1px solid var(--muted);
-  background:transparent;font-family:inherit;font-size:14px;color:var(--ink);cursor:pointer;
-  padding:2px 18px 2px 4px;margin-left:8px;outline:none;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%235a5347'/></svg>");
-  background-repeat:no-repeat;background-position:right 4px center;background-size:8px 5px;}
-.city-select:hover{border-bottom-color:var(--accent);color:var(--accent);}
-.city-select:focus{border-bottom-color:var(--accent);}
+.city-picker{position:relative;display:inline-block;margin-left:8px;font-family:system-ui,sans-serif;}
+.city-current{cursor:pointer;border-bottom:1px solid var(--muted);padding:2px 16px 2px 4px;font-size:14px;color:var(--ink);
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%235a5347'/></svg>") no-repeat right 2px center/8px 5px;}
+.city-current:hover{border-bottom-color:var(--accent);color:var(--accent);}
+.city-list{display:none;position:absolute;top:100%;left:0;z-index:10;background:var(--paper);border:1px solid #c9bfa0;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:260px;overflow-y:auto;min-width:100px;}
+.city-list.open{display:block;}
+.city-list span{display:block;padding:5px 14px;cursor:pointer;font-size:13px;white-space:nowrap;}
+.city-list span:hover{background:rgba(122,31,26,.08);color:var(--accent);}
+.city-list span.active{font-weight:700;color:var(--accent);}
 .weather-text{margin-top:8px;white-space:pre-line;}
 
 /* 头版网格：头条 + 导读 */
@@ -154,8 +156,8 @@ a.peel{text-decoration:none;color:inherit;display:block;}
 .columns{column-width:320px;column-gap:36px;column-rule:1px solid #cfc2a6;}
 .art{break-inside:avoid;display:block;text-decoration:none;color:var(--ink);padding:12px;margin:0 -12px 8px;
   border-bottom:1px solid #d7cab0;border-radius:4px;
-  transition:transform .12s,box-shadow .12s,background .12s;}
-.art:hover{background:rgba(255,255,255,.55);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12);}
+  transition:box-shadow .12s,background .12s;}
+.art:hover{background:rgba(255,255,255,.55);box-shadow:0 6px 16px rgba(0,0,0,.12);}
 .art .at{font-size:18px;line-height:1.34;font-weight:700;}
 .art:hover .at{text-decoration:underline;text-decoration-color:var(--accent);}
 .art .by{font-size:11.5px;color:var(--muted);font-family:system-ui,sans-serif;margin:4px 0 6px;letter-spacing:.03em;}
@@ -197,35 +199,34 @@ _JS = """
     var peel=sheet.querySelector('.peel');
     if(peel&&peel.tagName!=='A') peel.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
     if(reduce||!fine) return;
-    var wrap=document.createElement('div');wrap.className='sheet-wrap';
-    sheet.parentNode.insertBefore(wrap,sheet);wrap.appendChild(sheet);
-    var raf=0;
-    wrap.addEventListener('mouseenter',function(){sheet.classList.remove('resetting');});
-    wrap.addEventListener('mousemove',function(e){
-      if(raf) return;
-      raf=requestAnimationFrame(function(){
-        raf=0;
-        var r=wrap.getBoundingClientRect();
-        var cx=(e.clientX-(r.left+r.width/2))/r.width;
-        var cy=(e.clientY-(r.top+r.height/2))/r.height;
-        sheet.style.transform='rotateY('+(cx*1.6).toFixed(2)+'deg) rotateX('+(-cy*1.2).toFixed(2)+'deg)';
-      });
-    });
-    wrap.addEventListener('mouseleave',function(){
-      sheet.classList.add('resetting');
-      sheet.style.transform='rotateY(0) rotateX(0)';
-    });
+    sheet.addEventListener('mouseenter',function(){sheet.classList.remove('resetting');sheet.style.transform='rotateY(0.3deg) rotateX(-0.2deg)';});
+    sheet.addEventListener('mouseleave',function(){sheet.classList.add('resetting');sheet.style.transform='rotateY(0) rotateX(0)';});
   });
   if(typeof __weather!=='undefined'&&__weather.data){
     var wd=__weather.data,wc=__weather.cities,wdef=__weather.default;
-    var sel=document.querySelector('.city-select');
+    var cur=document.querySelector('.city-current');
+    var list=document.querySelector('.city-list');
     var txt=document.querySelector('.weather-text');
-    if(sel&&txt){
-      function setCity(c){if(!wd[c])c=wdef;sel.value=c;txt.textContent=wd[c];}
-      sel.addEventListener('change',function(){
-        setCity(sel.value);
-        try{localStorage.setItem('dispatch_city',sel.value);}catch(e){}
+    if(cur&&list&&txt){
+      function setCity(c){
+        if(!wd[c])c=wdef;
+        cur.textContent=c;
+        txt.textContent=wd[c];
+        var spans=list.querySelectorAll('span');
+        for(var j=0;j<spans.length;j++) spans[j].className=spans[j].getAttribute('data-city')===c?'active':'';
+        list.className='city-list';
+      }
+      cur.addEventListener('click',function(e){
+        e.stopPropagation();
+        list.className=list.className.indexOf('open')>=0?'city-list':'city-list open';
       });
+      list.addEventListener('click',function(e){
+        var t=e.target;if(t.tagName!=='SPAN')return;
+        var c=t.getAttribute('data-city');if(!c)return;
+        setCity(c);
+        try{localStorage.setItem('dispatch_city',c);}catch(e){}
+      });
+      document.addEventListener('click',function(){list.className='city-list';});
       var saved=null;
       try{saved=localStorage.getItem('dispatch_city');}catch(e){}
       if(saved&&wd[saved]){setCity(saved);}
@@ -251,6 +252,19 @@ _JS = """
 
 
 # ---------------------------------------------------------------- pieces
+
+
+def _render_city_weatherbar(city_weather: dict[str, str]) -> str:
+    default_city = next(iter(city_weather))
+    items = "".join(
+        f'<span data-city="{_esc(c)}">{_esc(c)}</span>' for c in city_weather
+    )
+    return (
+        f'<div class="weatherbar"><b>今日天气</b>'
+        f'<div class="city-picker"><span class="city-current">{_esc(default_city)}</span>'
+        f'<div class="city-list">{items}</div></div>'
+        f'<div class="weather-text">{_esc(city_weather[default_city])}</div></div>'
+    )
 
 
 def _render_article(it, show_summary: bool) -> str:
@@ -307,16 +321,7 @@ def _render_front(
 ) -> str:
     wbar = ""
     if city_weather:
-        options = "".join(
-            f'<option value="{_esc(c)}">{_esc(c)}</option>' for c in city_weather
-        )
-        default_city = next(iter(city_weather))
-        default_text = _esc(city_weather[default_city])
-        wbar = (
-            f'<div class="weatherbar"><b>今日天气</b>'
-            f'<select class="city-select">{options}</select>'
-            f'<div class="weather-text">{default_text}</div></div>'
-        )
+        wbar = _render_city_weatherbar(city_weather)
     elif weather and weather.text:
         wbar = f'<div class="weatherbar"><b>{_esc(weather.name)}</b>　{_esc(weather.text).splitlines()[0] if weather.text else ""}</div>'
 
@@ -413,16 +418,7 @@ def render_paper(
 def _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries, prev_href=None, city_weather=None) -> str:
     wbar = ""
     if city_weather:
-        options = "".join(
-            f'<option value="{_esc(c)}">{_esc(c)}</option>' for c in city_weather
-        )
-        default_city = next(iter(city_weather))
-        default_text = _esc(city_weather[default_city])
-        wbar = (
-            f'<div class="weatherbar"><b>今日天气</b>'
-            f'<select class="city-select">{options}</select>'
-            f'<div class="weather-text">{default_text}</div></div>'
-        )
+        wbar = _render_city_weatherbar(city_weather)
     elif weather and weather.text:
         wbar = f'<div class="weatherbar"><b>{_esc(weather.name)}</b>　{_esc(weather.text).splitlines()[0]}</div>'
     secs = ""

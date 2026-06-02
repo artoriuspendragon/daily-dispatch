@@ -134,8 +134,8 @@ def test_multipage_city_weather_dropdown():
     d = _sample_digest()
     d.extra = {"city_weather": {"北京": "晴朗好天气", "上海": "多云转阴"}}
     html = render_paper(d, multi_page=True, city_weather=d.extra["city_weather"])
-    assert 'class="city-select"' in html
-    assert '<option' in html
+    assert 'class="city-picker"' in html
+    assert 'data-city=' in html
     assert "北京" in html and "上海" in html
     assert "dispatch_city" in html
     assert "ip-api.com" in html
@@ -143,5 +143,5 @@ def test_multipage_city_weather_dropdown():
 
 def test_no_city_weather_keeps_old_weatherbar():
     html = render_paper(_sample_digest(), multi_page=True)
-    assert "<select" not in html
+    assert 'class="city-current"' not in html
     assert "多云转晴" in html
