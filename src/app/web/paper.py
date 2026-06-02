@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import html
+import json as _json
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -116,6 +117,14 @@ a.peel{text-decoration:none;color:inherit;display:block;}
 .weatherbar{margin:16px 0 4px;padding:10px 16px;border:1px solid #c9bfa0;border-left:4px solid var(--accent);
   background:rgba(255,255,255,.35);font-size:14px;line-height:1.65;}
 .weatherbar b{font-family:system-ui,sans-serif;color:var(--accent);letter-spacing:.1em;}
+.city-select{appearance:none;-webkit-appearance:none;border:none;border-bottom:1px solid var(--muted);
+  background:transparent;font-family:inherit;font-size:14px;color:var(--ink);cursor:pointer;
+  padding:2px 18px 2px 4px;margin-left:8px;outline:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%235a5347'/></svg>");
+  background-repeat:no-repeat;background-position:right 4px center;background-size:8px 5px;}
+.city-select:hover{border-bottom-color:var(--accent);color:var(--accent);}
+.city-select:focus{border-bottom-color:var(--accent);}
+.weather-text{margin-top:8px;white-space:pre-line;}
 
 /* 头版网格：头条 + 导读 */
 .frontgrid{display:grid;grid-template-columns:1fr 270px;gap:34px;margin-top:18px;}
@@ -207,6 +216,36 @@ _JS = """
       sheet.style.transform='rotateY(0) rotateX(0)';
     });
   });
+  if(typeof __weather!=='undefined'&&__weather.data){
+    var wd=__weather.data,wc=__weather.cities,wdef=__weather.default;
+    var sel=document.querySelector('.city-select');
+    var txt=document.querySelector('.weather-text');
+    if(sel&&txt){
+      function setCity(c){if(!wd[c])c=wdef;sel.value=c;txt.textContent=wd[c];}
+      sel.addEventListener('change',function(){
+        setCity(sel.value);
+        try{localStorage.setItem('dispatch_city',sel.value);}catch(e){}
+      });
+      var saved=null;
+      try{saved=localStorage.getItem('dispatch_city');}catch(e){}
+      if(saved&&wd[saved]){setCity(saved);}
+      else{
+        setCity(wdef);
+        fetch('https://ip-api.com/json/?fields=city,regionName&lang=zh-CN')
+          .then(function(r){return r.json();})
+          .then(function(d){
+            var loc=(d.city||'')+(d.regionName||'');
+            for(var i=0;i<wc.length;i++){
+              if(loc.indexOf(wc[i])>=0||wc[i].indexOf(d.city||'__')>=0){
+                setCity(wc[i]);
+                try{localStorage.setItem('dispatch_city',wc[i]);}catch(e){}
+                break;
+              }
+            }
+          }).catch(function(){});
+      }
+    }
+  }
 })();
 """
 
@@ -264,10 +303,21 @@ def _wrap_page(name: str, idx: int, total: int, inner: str, archive_href: str) -
 def _render_front(
     *, title, masthead_en, issue, dt, weather: Section | None,
     headline: Section | None, index_entries, total, archive_href, show_summary,
-    prev_href: str | None = None,
+    prev_href: str | None = None, city_weather: dict[str, str] | None = None,
 ) -> str:
     wbar = ""
-    if weather and weather.text:
+    if city_weather:
+        options = "".join(
+            f'<option value="{_esc(c)}">{_esc(c)}</option>' for c in city_weather
+        )
+        default_city = next(iter(city_weather))
+        default_text = _esc(city_weather[default_city])
+        wbar = (
+            f'<div class="weatherbar"><b>今日天气</b>'
+            f'<select class="city-select">{options}</select>'
+            f'<div class="weather-text">{default_text}</div></div>'
+        )
+    elif weather and weather.text:
         wbar = f'<div class="weatherbar"><b>{_esc(weather.name)}</b>　{_esc(weather.text).splitlines()[0] if weather.text else ""}</div>'
 
     lead = ""
@@ -319,6 +369,7 @@ def render_paper(
     multi_page: bool = True,
     show_summaries: bool = True,
     prev_href: str | None = None,
+    city_weather: dict[str, str] | None = None,
 ) -> str:
     """将 Digest 渲染为拟物多版报纸 HTML。"""
     dt = _parse_dt(digest.generated_at)
@@ -334,8 +385,8 @@ def render_paper(
 
     if not multi_page:
         # 单版：头条 + 全部版面塞进一张大报
-        body = _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries, prev_href)
-        return _document(title, masthead_en, body)
+        body = _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries, prev_href, city_weather)
+        return _document(title, masthead_en, body, city_weather=city_weather)
 
     # 多版：头版 + 每个版面一页
     total = 1 + len(inner)
@@ -345,7 +396,7 @@ def render_paper(
             title=title, masthead_en=masthead_en, issue=issue, dt=dt, weather=weather,
             headline=headline, index_entries=index_entries, total=total,
             archive_href=archive_href, show_summary=show_summaries,
-            prev_href=prev_href,
+            prev_href=prev_href, city_weather=city_weather,
         )
     ]
     for i, sec in enumerate(inner):
@@ -356,12 +407,23 @@ def render_paper(
             arts = "".join(_render_article(it, show_summaries) for it in sec.items)
             body = f'<div class="columns">{arts}</div>' if arts else (f'<p>{_esc(sec.text or "")}</p>')
             pages.append(_wrap_page(sec.name, idx, total, body, archive_href))
-    return _document(title, masthead_en, "".join(pages))
+    return _document(title, masthead_en, "".join(pages), city_weather=city_weather)
 
 
-def _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries, prev_href=None) -> str:
+def _render_single(title, masthead_en, issue, dt, weather, headline, inner, archive_href, show_summaries, prev_href=None, city_weather=None) -> str:
     wbar = ""
-    if weather and weather.text:
+    if city_weather:
+        options = "".join(
+            f'<option value="{_esc(c)}">{_esc(c)}</option>' for c in city_weather
+        )
+        default_city = next(iter(city_weather))
+        default_text = _esc(city_weather[default_city])
+        wbar = (
+            f'<div class="weatherbar"><b>今日天气</b>'
+            f'<select class="city-select">{options}</select>'
+            f'<div class="weather-text">{default_text}</div></div>'
+        )
+    elif weather and weather.text:
         wbar = f'<div class="weatherbar"><b>{_esc(weather.name)}</b>　{_esc(weather.text).splitlines()[0]}</div>'
     secs = ""
     ordered = ([headline] if headline else []) + inner
@@ -381,7 +443,12 @@ def _render_single(title, masthead_en, issue, dt, weather, headline, inner, arch
     )
 
 
-def _document(title: str, masthead_en: str, body: str) -> str:
+def _document(title: str, masthead_en: str, body: str, *, city_weather: dict[str, str] | None = None) -> str:
+    weather_script = ""
+    if city_weather:
+        cities_json = _json.dumps(city_weather, ensure_ascii=False)
+        default_city = _esc(next(iter(city_weather)))
+        weather_script = f'\n<script>var __weather={{data:{cities_json},cities:{_json.dumps(list(city_weather.keys()), ensure_ascii=False)},default:"{default_city}"}}</script>'
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -393,7 +460,7 @@ def _document(title: str, masthead_en: str, body: str) -> str:
 <body>
 <div class="stage">
 {body}
-</div>
+</div>{weather_script}
 <script>{_JS}</script>
 </body>
 </html>

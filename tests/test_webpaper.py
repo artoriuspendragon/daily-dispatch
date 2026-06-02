@@ -116,3 +116,32 @@ def test_publish_writes_files_without_git(tmp_path):
     assert res.archive_path.exists() and res.git_pushed is False
     assert (out / "papers" / "2026-05-26.html").exists()
     assert "每日早报 2026-05-26" in res.index_path.read_text(encoding="utf-8")
+
+
+def test_publish_embeds_city_weather(tmp_path):
+    d = _sample_digest()
+    d.extra = {"city_weather": {"北京": "晴朗好天气", "上海": "多云转阴"}}
+    out = tmp_path / "site"
+    res = publish_paper(d, output_dir=str(out), git_publish=False)
+    html = res.page_path.read_text(encoding="utf-8")
+    assert "__weather" in html
+    assert "北京" in html
+    assert "晴朗好天气" in html
+    assert "上海" in html
+
+
+def test_multipage_city_weather_dropdown():
+    d = _sample_digest()
+    d.extra = {"city_weather": {"北京": "晴朗好天气", "上海": "多云转阴"}}
+    html = render_paper(d, multi_page=True, city_weather=d.extra["city_weather"])
+    assert 'class="city-select"' in html
+    assert '<option' in html
+    assert "北京" in html and "上海" in html
+    assert "dispatch_city" in html
+    assert "ip-api.com" in html
+
+
+def test_no_city_weather_keeps_old_weatherbar():
+    html = render_paper(_sample_digest(), multi_page=True)
+    assert "<select" not in html
+    assert "多云转晴" in html
