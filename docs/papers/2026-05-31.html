@@ -25,7 +25,9 @@ body{margin:0;padding:40px 16px 90px;min-height:100vh;
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
   padding:46px 52px 56px;border-radius:2px;margin:0 auto 46px;
   box-shadow:0 2px 0 #d9cfba, 0 30px 60px rgba(0,0,0,.55), inset 0 0 60px rgba(120,90,50,.10);
-  transform-style:preserve-3d;transition:transform .12s ease-out;will-change:transform;}
+  transform-style:preserve-3d;will-change:transform;}
+.sheet.resetting{transition:transform .35s ease-out;}
+.sheet-wrap{perspective:2000px;}
 .sheet::before,.sheet::after{content:"";position:absolute;inset:0;background:var(--paper2);
   border-radius:2px;z-index:-1;box-shadow:0 18px 40px rgba(0,0,0,.4);}
 .sheet::before{transform:translate(6px,8px) rotate(.4deg);}
@@ -127,12 +129,24 @@ a.peel{text-decoration:none;color:inherit;display:block;}
     var peel=sheet.querySelector('.peel');
     if(peel&&peel.tagName!=='A') peel.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
     if(reduce||!fine) return;
-    sheet.addEventListener('mousemove',function(e){
-      var r=sheet.getBoundingClientRect();
-      var cx=(e.clientX-(r.left+r.width/2))/r.width, cy=(e.clientY-(r.top+r.height/2))/r.height;
-      sheet.style.transform='rotateY('+(cx*2.4).toFixed(2)+'deg) rotateX('+(-cy*2).toFixed(2)+'deg)';
+    var wrap=document.createElement('div');wrap.className='sheet-wrap';
+    sheet.parentNode.insertBefore(wrap,sheet);wrap.appendChild(sheet);
+    var raf=0;
+    wrap.addEventListener('mouseenter',function(){sheet.classList.remove('resetting');});
+    wrap.addEventListener('mousemove',function(e){
+      if(raf) return;
+      raf=requestAnimationFrame(function(){
+        raf=0;
+        var r=wrap.getBoundingClientRect();
+        var cx=(e.clientX-(r.left+r.width/2))/r.width;
+        var cy=(e.clientY-(r.top+r.height/2))/r.height;
+        sheet.style.transform='rotateY('+(cx*1.6).toFixed(2)+'deg) rotateX('+(-cy*1.2).toFixed(2)+'deg)';
+      });
     });
-    sheet.addEventListener('mouseleave',function(){sheet.style.transform='rotateY(0) rotateX(0)';});
+    wrap.addEventListener('mouseleave',function(){
+      sheet.classList.add('resetting');
+      sheet.style.transform='rotateY(0) rotateX(0)';
+    });
   });
 })();
 </script>
