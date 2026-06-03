@@ -135,6 +135,8 @@ def test_multipage_city_weather_dropdown():
     d.extra = {"city_weather": {"北京": "晴朗好天气", "上海": "多云转阴"}}
     html = render_paper(d, multi_page=True, city_weather=d.extra["city_weather"])
     assert 'class="city-picker"' in html
+    assert '<button type="button" class="city-current"' in html
+    assert '<button type="button" data-city=' in html
     assert 'data-city=' in html
     assert "北京" in html and "上海" in html
     assert "dispatch_city" in html
@@ -153,7 +155,8 @@ def test_paper_has_physical_reading_effects():
     assert "settle-replay" in html
     assert "dispatch_settle_intensity" in html
     assert "dispatch_settle_motion_off" in html
-    assert "dispatch_drape_intensity_v6" in html
+    assert "dispatch_drape_intensity_v7" in html
+    assert "storeGet('dispatch_drape_intensity_v7','.25')" in html
     assert "scrollPauseMs=900" in html
     assert "S(90,12)" in html
     assert "ty:S(70,9)" in html
@@ -164,6 +167,22 @@ def test_paper_has_physical_reading_effects():
     assert "function drapeOn()" in html
     assert "window.addEventListener('mousemove'" in html
     assert "function applyDrapeTarget" in html
+    assert "function isUiTarget" in html
+    assert "function isUiPoint" in html
+    assert "function flattenForUi" in html
+    assert "function linkAtPoint" in html
+    assert "hover-proxy" in html
+    assert ".city-picker,.physics-controls" in html
+    assert "cur.addEventListener('pointerdown'" in html
+    assert "cur.addEventListener('click'" in html
+    assert "list.addEventListener('pointerdown'" in html
+    assert "list.addEventListener('click'" in html
+    assert "handleCityPoint(e)" in html
+    assert "ignoreCityDocumentClick" in html
+    assert "cityUserTouched" in html
+    assert "setCity(wc[i],false)" in html
+    assert "e.target.closest('[data-city]')" in html
+    assert "list.querySelectorAll('button')" in html
     assert "perspective:3200px" in html
     assert "transform-style:preserve-3d" in html
     assert "rotateX('+c.rx.x.toFixed(3)+'deg) rotateY('+c.ry.x.toFixed(3)" in html
