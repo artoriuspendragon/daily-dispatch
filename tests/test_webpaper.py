@@ -153,7 +153,7 @@ def test_paper_has_physical_reading_effects():
     assert "settle-replay" in html
     assert "dispatch_settle_intensity" in html
     assert "dispatch_settle_motion_off" in html
-    assert "dispatch_drape_intensity_v1" in html
+    assert "dispatch_drape_intensity_v6" in html
     assert "scrollPauseMs=900" in html
     assert "S(90,12)" in html
     assert "ty:S(70,9)" in html
@@ -162,15 +162,24 @@ def test_paper_has_physical_reading_effects():
     assert "window.setPaperIntensity" in html
     assert "window.setDrapeIntensity" in html
     assert "function drapeOn()" in html
-    assert "c.ry.t=clamp((px-.5)*3.4*drapeIntensity,-3.4,3.4)" in html
-    assert "c.rx.t=clamp((py-.4)*-2.8*drapeIntensity,-2.8,2.8)" in html
+    assert "window.addEventListener('mousemove'" in html
+    assert "function applyDrapeTarget" in html
+    assert "perspective:3200px" in html
+    assert "transform-style:preserve-3d" in html
+    assert "rotateX('+c.rx.x.toFixed(3)+'deg) rotateY('+c.ry.x.toFixed(3)" in html
+    assert "translateY('+c.ty.x.toFixed(2)+'px)" in html
+    assert "c.ry.t=clamp((c.px-.5)*3.4*drapeIntensity,-3.4,3.4)" in html
+    assert "c.rx.t=clamp((c.py-.4)*-2.8*drapeIntensity,-2.8,2.8)" in html
+    assert "c.mx" not in html
+    assert "c.my" not in html
     assert "perspective-origin:50% 30%" in html
     assert 'class="has-motion-js"' in html
     assert "translateY(-37px)" in html
     assert "c.ty.x=-32*I" in html
     assert "settleImpulse(visibleControllers(),.45)" in html
-    assert "--light-x" in html
-    assert "--paper-light-x" in html
+    assert "--light-x" not in html
+    assert "--paper-light-x" not in html
+    assert "body::before" not in html
     assert 'content:"📌"' in html
     assert ".lead-main::before" in html
     assert ".art::after" in html
@@ -180,4 +189,4 @@ def test_paper_has_physical_reading_effects():
     assert "transform:rotate(-7deg) scaleX(.98) scaleY(.94)" in html
     assert "outline-color:rgba(180,40,30,.13)" in html
     assert "--pencil-loop" not in html
-    assert "pointermove" in html
+    assert "pointermove" not in html
