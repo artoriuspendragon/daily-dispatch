@@ -157,7 +157,7 @@ def test_paper_has_physical_reading_effects():
     assert "dispatch_settle_motion_off" in html
     assert "dispatch_drape_intensity_v7" in html
     assert "storeGet('dispatch_drape_intensity_v7','.25')" in html
-    assert "scrollPauseMs=900" in html
+    assert "hoverProxySelector='.lead-main,.lead-rest .hl,.index a,.art,.colophon a'" in html
     assert "S(90,12)" in html
     assert "ty:S(70,9)" in html
     assert "settleImpulse(controllers,1.15)" in html
@@ -172,7 +172,14 @@ def test_paper_has_physical_reading_effects():
     assert "function flattenForUi" in html
     assert "function linkAtPoint" in html
     assert "hover-proxy" in html
-    assert ".city-picker,.physics-controls" in html
+    assert ".city-picker,.physics-controls,.epic" in html
+    assert ".epic a:hover" in html
+    assert "backface-visibility:hidden" in html
+    assert ".peel::before" in html
+    assert "border-top:56px solid" in html
+    assert "clip-path:polygon" not in html
+    assert ".sheet::before,.sheet::after{content:none;}" in html
+    assert "position:absolute;inset:0;background:var(--paper2)" not in html
     assert "cur.addEventListener('pointerdown'" in html
     assert "cur.addEventListener('click'" in html
     assert "list.addEventListener('pointerdown'" in html
@@ -195,7 +202,7 @@ def test_paper_has_physical_reading_effects():
     assert 'class="has-motion-js"' in html
     assert "translateY(-37px)" in html
     assert "c.ty.x=-32*I" in html
-    assert "settleImpulse(visibleControllers(),.45)" in html
+    assert "controllers.forEach(function(c){c.over=false;});" in html
     assert "--light-x" not in html
     assert "--paper-light-x" not in html
     assert "body::before" not in html
