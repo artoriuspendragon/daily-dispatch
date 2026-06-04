@@ -128,3 +128,57 @@ def test_pipeline_run_no_push_channels(monkeypatch):
     assert result.ok
     assert "push_skipped" in result.steps_completed
     assert result.channel_results == []
+
+
+def test_pipeline_populates_city_weather_in_digest_extra(monkeypatch):
+    from unittest.mock import patch, MagicMock
+    from app import pipeline as pipeline_mod
+    from app.config import WeatherConfig, CityWeatherConfig
+
+    monkeypatch.setattr(pipeline_mod, "fetch_all", lambda s, timeout_per_source: [])
+    monkeypatch.setattr(pipeline_mod, "deduplicate", lambda items, key="link": items)
+    monkeypatch.setattr(pipeline_mod, "filter_and_sort", lambda items, cfg: items)
+    monkeypatch.setattr(
+        pipeline_mod,
+        "generate_digest",
+        lambda items, cfg, **kw: Digest(
+            id="t", title="test", generated_at="2026-01-01T00:00:00Z",
+            rendered=RenderedDigest(),
+        ),
+    )
+
+    cfg = AppConfig(
+        sources=[SourceConfig(id="s1", type="rss", url="https://example.com/feed.xml")],
+        filter=FilterConfig(strategy="rule"),
+        digest=DigestConfig(strategy="template"),
+        push=PushConfig(channels=[]),
+        weather=WeatherConfig(
+            enabled=True,
+            api_key="test",
+            cities=[CityWeatherConfig(name="北京", adcode="110000", popular=True)],
+        ),
+    )
+
+    fake_resp = MagicMock()
+    fake_resp.status_code = 200
+    fake_resp.content = b"{}"
+    fake_resp.text = "{}"
+    fake_resp.json.return_value = {
+        "city": "北京", "weather": "晴", "temperature": "22",
+        "feels_like": "20", "humidity": "45", "wind_direction": "东北",
+        "wind_power": "3级", "uv": "5", "aqi": "35", "aqi_category": "优",
+        "hourly_forecast": [],
+    }
+    fake_resp.raise_for_status = MagicMock()
+
+    mock_client = MagicMock()
+    mock_client.__enter__ = MagicMock(return_value=mock_client)
+    mock_client.__exit__ = MagicMock(return_value=False)
+    mock_client.get = MagicMock(return_value=fake_resp)
+
+    with patch("app.weather.httpx.Client", return_value=mock_client):
+        result = run(cfg)
+
+    assert result.digest is not None
+    assert "city_weather" in result.digest.extra
+    assert "北京" in result.digest.extra["city_weather"]

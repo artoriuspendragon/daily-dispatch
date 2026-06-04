@@ -105,11 +105,20 @@ def publish_paper(
     papers.mkdir(parents=True, exist_ok=True)
 
     date_str = _digest_date(digest)
+    city_weather = digest.extra.get("city_weather") if hasattr(digest, "extra") else None
+
+    # 查找前一天报纸用于翻页导航
+    existing = _collect_archive(papers)
+    prev_paper = next((href for d, href in existing if d < date_str), None)
+    prev_href_dated = prev_paper.removeprefix("papers/") if prev_paper else None
+    prev_href_index = prev_paper if prev_paper else None
 
     # dated 页面（archive 链接指向 ../archive.html，因为它在 papers/ 子目录下）
     page_html = render_paper(
         digest, masthead_en=masthead_en, archive_href="../archive.html",
         multi_page=multi_page, show_summaries=show_summaries,
+        prev_href=prev_href_dated,
+        city_weather=city_weather,
     )
     page_path = papers / f"{date_str}.html"
     page_path.write_text(page_html, encoding="utf-8")
@@ -118,6 +127,8 @@ def publish_paper(
     index_html = render_paper(
         digest, masthead_en=masthead_en, archive_href="archive.html",
         multi_page=multi_page, show_summaries=show_summaries,
+        prev_href=prev_href_index,
+        city_weather=city_weather,
     )
     index_path = out / "index.html"
     index_path.write_text(index_html, encoding="utf-8")

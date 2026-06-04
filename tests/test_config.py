@@ -144,6 +144,25 @@ push:
         load_config(path=cfg_path)
 
 
+def test_weather_cities_default():
+    from app.config import WeatherConfig
+    w = WeatherConfig(enabled=True)
+    assert len(w.cities) >= 15
+    popular = [c for c in w.cities if c.popular]
+    assert len(popular) >= 5
+    assert all(c.name and c.adcode for c in w.cities)
+
+
+def test_weather_cities_custom():
+    from app.config import WeatherConfig, CityWeatherConfig
+    w = WeatherConfig(
+        enabled=True,
+        cities=[CityWeatherConfig(name="测试市", adcode="999999", popular=True)],
+    )
+    assert len(w.cities) == 1
+    assert w.cities[0].name == "测试市"
+
+
 def test_app_config_requires_filter_agent_when_strategy_agent():
     from app.config import PushConfig
 

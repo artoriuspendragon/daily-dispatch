@@ -192,6 +192,33 @@ class DigestConfig(BaseModel):
 
 # ---------- 天气 ----------
 
+_DEFAULT_CITIES: list[dict[str, str | bool]] = [
+    {"name": "北京", "adcode": "110000", "popular": True},
+    {"name": "上海", "adcode": "310000", "popular": True},
+    {"name": "广州", "adcode": "440100", "popular": True},
+    {"name": "深圳", "adcode": "440300", "popular": True},
+    {"name": "成都", "adcode": "510100", "popular": True},
+    {"name": "杭州", "adcode": "330100", "popular": True},
+    {"name": "武汉", "adcode": "420100", "popular": True},
+    {"name": "重庆", "adcode": "500000", "popular": True},
+    {"name": "南京", "adcode": "320100"},
+    {"name": "西安", "adcode": "610100"},
+    {"name": "苏州", "adcode": "320500"},
+    {"name": "天津", "adcode": "120000"},
+    {"name": "郑州", "adcode": "410100"},
+    {"name": "长沙", "adcode": "430100"},
+    {"name": "东莞", "adcode": "441900"},
+    {"name": "青岛", "adcode": "370200"},
+    {"name": "昆明", "adcode": "530100"},
+    {"name": "厦门", "adcode": "350200"},
+]
+
+
+class CityWeatherConfig(BaseModel):
+    name: str
+    adcode: str
+    popular: bool = False
+
 
 class WeatherConfig(BaseModel):
     """天气 API 配置。"""
@@ -201,8 +228,10 @@ class WeatherConfig(BaseModel):
     api_key: Optional[str] = None
     city: str = "北京"
     adcode: str = "100085"
-    # 用户作息（供 AI 生成穿衣/出行建议）
     schedule: Optional[str] = None
+    cities: list[CityWeatherConfig] = Field(
+        default_factory=lambda: [CityWeatherConfig(**c) for c in _DEFAULT_CITIES]
+    )
 
 
 # ---------- 推送渠道（各渠道可选字段放同一模型，按 type 校验） ----------

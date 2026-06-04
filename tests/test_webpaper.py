@@ -116,3 +116,96 @@ def test_publish_writes_files_without_git(tmp_path):
     assert res.archive_path.exists() and res.git_pushed is False
     assert (out / "papers" / "2026-05-26.html").exists()
     assert "每日早报 2026-05-26" in res.index_path.read_text(encoding="utf-8")
+
+
+def test_publish_embeds_city_weather(tmp_path):
+    d = _sample_digest()
+    d.extra = {"city_weather": {"北京": "晴朗好天气", "上海": "多云转阴"}}
+    out = tmp_path / "site"
+    res = publish_paper(d, output_dir=str(out), git_publish=False)
+    html = res.page_path.read_text(encoding="utf-8")
+    assert "__weather" in html
+    assert "北京" in html
+    assert "晴朗好天气" in html
+    assert "上海" in html
+
+
+def test_multipage_city_weather_dropdown():
+    d = _sample_digest()
+    d.extra = {"city_weather": {"北京": "晴朗好天气", "上海": "多云转阴"}}
+    html = render_paper(d, multi_page=True, city_weather=d.extra["city_weather"])
+    assert 'class="city-picker"' in html
+    assert '<button type="button" class="city-current"' in html
+    assert '<button type="button" data-city=' in html
+    assert 'data-city=' in html
+    assert "北京" in html and "上海" in html
+    assert "dispatch_city" in html
+    assert "ip-api.com" in html
+
+
+def test_no_city_weather_keeps_old_weatherbar():
+    html = render_paper(_sample_digest(), multi_page=True)
+    assert 'class="city-current"' not in html
+    assert "多云转晴" in html
+
+
+def test_paper_has_physical_reading_effects():
+    html = render_paper(_sample_digest(), multi_page=True)
+    assert "paper-settle" not in html
+    assert "settle-replay" in html
+    assert "dispatch_settle_intensity" in html
+    assert "dispatch_settle_motion_off" in html
+    assert "dispatch_drape_intensity_v7" in html
+    assert "storeGet('dispatch_drape_intensity_v7','.25')" in html
+    assert "scrollPauseMs=900" in html
+    assert "S(90,12)" in html
+    assert "ty:S(70,9)" in html
+    assert "settleImpulse(controllers,1.15)" in html
+    assert "window.paperSettle" in html
+    assert "window.setPaperIntensity" in html
+    assert "window.setDrapeIntensity" in html
+    assert "function drapeOn()" in html
+    assert "window.addEventListener('mousemove'" in html
+    assert "function applyDrapeTarget" in html
+    assert "function isUiTarget" in html
+    assert "function isUiPoint" in html
+    assert "function flattenForUi" in html
+    assert "function linkAtPoint" in html
+    assert "hover-proxy" in html
+    assert ".city-picker,.physics-controls" in html
+    assert "cur.addEventListener('pointerdown'" in html
+    assert "cur.addEventListener('click'" in html
+    assert "list.addEventListener('pointerdown'" in html
+    assert "list.addEventListener('click'" in html
+    assert "handleCityPoint(e)" in html
+    assert "ignoreCityDocumentClick" in html
+    assert "cityUserTouched" in html
+    assert "setCity(wc[i],false)" in html
+    assert "e.target.closest('[data-city]')" in html
+    assert "list.querySelectorAll('button')" in html
+    assert "perspective:3200px" in html
+    assert "transform-style:preserve-3d" in html
+    assert "rotateX('+c.rx.x.toFixed(3)+'deg) rotateY('+c.ry.x.toFixed(3)" in html
+    assert "translateY('+c.ty.x.toFixed(2)+'px)" in html
+    assert "c.ry.t=clamp((c.px-.5)*3.4*drapeIntensity,-3.4,3.4)" in html
+    assert "c.rx.t=clamp((c.py-.4)*-2.8*drapeIntensity,-2.8,2.8)" in html
+    assert "c.mx" not in html
+    assert "c.my" not in html
+    assert "perspective-origin:50% 30%" in html
+    assert 'class="has-motion-js"' in html
+    assert "translateY(-37px)" in html
+    assert "c.ty.x=-32*I" in html
+    assert "settleImpulse(visibleControllers(),.45)" in html
+    assert "--light-x" not in html
+    assert "--paper-light-x" not in html
+    assert "body::before" not in html
+    assert 'content:"📌"' in html
+    assert ".lead-main::before" in html
+    assert ".art::after" in html
+    assert "border:2.2px dashed" in html
+    assert "border-radius:50% 48% 52% 49% / 44% 48% 52% 56%" in html
+    assert "outline:1.4px dashed" in html
+    assert "transform:rotate(-7deg) scaleX(.98) scaleY(.94)" in html
+    assert "outline-color:rgba(180,40,30,.13)" in html
+    assert "--pencil-loop" not in html
+    assert "pointermove" not in html

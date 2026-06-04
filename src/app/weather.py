@@ -16,12 +16,21 @@ from app.config import WeatherConfig
 
 logger = logging.getLogger(__name__)
 
-# 用户作息关键时段（小时）
+# 用户作息关键时段（小时）— 个人邮件用
 _KEY_HOURS = {
     10: "出门上班",
     12: "午餐外出",
     13: "午餐返回",
     21: "下班回家",
+}
+
+# 通用时段（小时）— 报纸公共天气用
+_KEY_HOURS_PUBLIC = {
+    8: "早晨",
+    12: "中午",
+    15: "下午",
+    18: "傍晚",
+    21: "夜间",
 }
 
 
@@ -42,9 +51,10 @@ def _find_nearest_forecast(hourly: list[dict], target_hour: int) -> dict | None:
     return best
 
 
-def _build_weather_summary(data: dict) -> str:
-    """从 API 响应构建精简的天气摘要文本。"""
+def _build_weather_summary(data: dict, *, public: bool = False) -> str:
+    """从 API 响应构建精简的天气摘要文本。public=True 用通用时段标签。"""
     lines = []
+    key_hours = _KEY_HOURS_PUBLIC if public else _KEY_HOURS
 
     # 当前天气概况
     city = data.get("city", "未知")
@@ -68,7 +78,7 @@ def _build_weather_summary(data: dict) -> str:
     if hourly:
         lines.append("")
         lines.append("关键时段预报：")
-        for hour, label in sorted(_KEY_HOURS.items()):
+        for hour, label in sorted(key_hours.items()):
             fc = _find_nearest_forecast(hourly, hour)
             if fc:
                 fc_weather = fc.get("weather", "")
@@ -85,6 +95,25 @@ def _build_weather_summary(data: dict) -> str:
                     line += f" 降水量{fc_precip}mm"
                 lines.append(line)
 
+    # 生活指数
+    indices = data.get("life_indices", {})
+    if indices:
+        pick = ["clothing", "sunscreen", "car_wash", "exercise", "travel", "cold_risk"]
+        labels = {
+            "clothing": "穿衣", "sunscreen": "防晒", "car_wash": "洗车",
+            "exercise": "运动", "travel": "旅游", "cold_risk": "感冒",
+        }
+        parts = []
+        for key in pick:
+            idx = indices.get(key)
+            if idx and isinstance(idx, dict):
+                brief = idx.get("brief", "")
+                if brief:
+                    parts.append(f"{labels.get(key, key)}：{brief}")
+        if parts:
+            lines.append("")
+            lines.append("生活指数：" + "；".join(parts))
+
     return "\n".join(lines)
 
 
@@ -99,6 +128,7 @@ def fetch_weather(config: WeatherConfig) -> Optional[str]:
         "adcode": config.adcode,
         "extended": "true",
         "hourly": "true",
+        "indices": "true",
         "lang": "zh",
     }
     headers = {}
@@ -122,3 +152,42 @@ def fetch_weather(config: WeatherConfig) -> Optional[str]:
     summary = _build_weather_summary(data)
     logger.info("[weather] summary built, length=%d", len(summary))
     return summary
+
+
+def _fetch_single_city(
+    city_name: str, adcode: str, config: WeatherConfig, client: httpx.Client,
+) -> tuple[str, str | None]:
+    params = {
+        "city": city_name,
+        "adcode": adcode,
+        "extended": "true",
+        "hourly": "true",
+        "indices": "true",
+        "lang": "zh",
+    }
+    headers = {}
+    if config.api_key:
+        headers["Authorization"] = f"Bearer {config.api_key}"
+    try:
+        resp = client.get(config.api_url, params=params, headers=headers)
+        resp.raise_for_status()
+        data = resp.json()
+        summary = _build_weather_summary(data, public=True)
+        logger.info("[weather] city=%s fetched ok, len=%d", city_name, len(summary))
+        return city_name, summary
+    except Exception as e:
+        logger.warning("[weather] city=%s fetch failed: %s", city_name, e)
+        return city_name, None
+
+
+def fetch_weather_multi(
+    cities: list, config: WeatherConfig,
+) -> dict[str, str]:
+    results: dict[str, str] = {}
+    with httpx.Client(timeout=httpx.Timeout(15)) as client:
+        for city in cities:
+            name, summary = _fetch_single_city(city.name, city.adcode, config, client)
+            if summary is not None:
+                results[name] = summary
+    logger.info("[weather] multi-city fetch done: %d/%d succeeded", len(results), len(cities))
+    return results

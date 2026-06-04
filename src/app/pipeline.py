@@ -104,6 +104,7 @@ def run(
     # 4) 天气（可选，不阻断 pipeline）
     weather_summary = None
     user_schedule = None
+    city_weather: dict[str, str] = {}
     if config.weather.enabled:
         try:
             from app.weather import fetch_weather
@@ -114,6 +115,35 @@ def run(
         except Exception as e:
             logger.warning("pipeline weather failed: %s", e)
 
+        if config.weather.cities:
+            try:
+                from app.weather import fetch_weather_multi
+                from app.weather_llm import generate_city_descriptions
+
+                raw_multi = fetch_weather_multi(config.weather.cities, config.weather)
+
+                popular_raw = {
+                    c.name: raw_multi[c.name]
+                    for c in config.weather.cities
+                    if c.popular and c.name in raw_multi
+                }
+                llm_descriptions: dict[str, str] = {}
+                if popular_raw and config.digest.agent:
+                    llm_descriptions = generate_city_descriptions(
+                        popular_raw,
+                        endpoint=config.digest.agent.endpoint,
+                        api_key=config.digest.agent.api_key,
+                        model=config.digest.agent.model,
+                    )
+
+                for city_name, raw_text in raw_multi.items():
+                    city_weather[city_name] = llm_descriptions.get(city_name, raw_text)
+
+                result.steps_completed.append("weather_multi")
+                logger.info("pipeline multi-city weather done: %d cities", len(city_weather))
+            except Exception as e:
+                logger.warning("pipeline multi-city weather failed: %s", e)
+
     # 5) 早报
     try:
         digest = generate_digest(
@@ -122,6 +152,8 @@ def run(
             user_schedule=user_schedule,
         )
         result.digest = digest
+        if city_weather:
+            digest.extra["city_weather"] = city_weather
         result.steps_completed.append("digest")
         logger.info("pipeline digest done title=%s", digest.title)
         logger.info("pipeline digest done content=%s", digest)

@@ -82,6 +82,7 @@ class Digest(BaseModel):
     generated_at: str
     sections: list[Section] = Field(default_factory=list)
     rendered: RenderedDigest = Field(default_factory=RenderedDigest)
+    extra: dict[str, Any] = Field(default_factory=dict)
 
     model_config = {"str_strip_whitespace": True}
 
