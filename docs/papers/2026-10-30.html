@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="has-motion-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>每日早报 2026-10-30</title>
+<style>
+:root{
+  --paper:#f3ece0; --paper2:#efe7d8; --ink:#1c1a17; --muted:#5a5347;
+  --rule:#2a2722; --accent:#7a1f1a; --link:#243b6b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;padding:40px 16px 90px;min-height:100vh;
+  background:#2f2a25;
+  background-image:radial-gradient(circle at 30% 10%, #3a342d 0%, #221e1a 75%);
+  font-family:"Songti SC","Noto Serif SC","Source Han Serif SC",STSong,SimSun,Georgia,"Times New Roman",serif;
+  color:var(--ink);-webkit-font-smoothing:antialiased;perspective:3200px;perspective-origin:50% 30%;position:relative;}
+.stage{max-width:1060px;margin:0 auto;position:relative;transform-style:preserve-3d;}
+.physics-controls{position:fixed;right:16px;bottom:16px;z-index:40;display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border:1px solid rgba(231,218,188,.32);border-radius:999px;background:rgba(47,42,37,.78);
+  color:#efe7d8;box-shadow:0 10px 24px rgba(0,0,0,.28);backdrop-filter:blur(6px);
+  font:12px/1.2 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+.physics-controls button{border:1px solid rgba(239,231,216,.38);border-radius:999px;background:rgba(239,231,216,.12);
+  color:#efe7d8;padding:4px 10px;cursor:pointer;font:inherit;}
+.physics-controls button:hover{background:rgba(239,231,216,.20);}
+.physics-controls button:disabled{opacity:.42;cursor:not-allowed;}
+.physics-controls label{display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.settle-intensity{width:86px;accent-color:var(--accent);}
+.settle-intensity-value{min-width:1.8em;text-align:right;color:#d9cfba;}
+
+.sheet{position:relative;background:var(--paper);
+  background-image:
+    radial-gradient(circle at 18% 10%, rgba(255,255,255,.45), transparent 42%),
+    radial-gradient(circle at 84% 92%, rgba(120,90,50,.10), transparent 46%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+  padding:46px 52px 56px;border-radius:2px;margin:0 auto 46px;
+  box-shadow:0 2px 0 #d9cfba, 6px 8px 0 rgba(232,222,204,.88), 11px 15px 0 rgba(216,203,181,.70),
+    0 30px 60px rgba(0,0,0,.55), inset 0 0 60px rgba(120,90,50,.10);
+  transform:translate3d(0,0,0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  transform-origin:center 58%;transform-style:preserve-3d;will-change:transform;}
+body.motion-off .sheet{transform:none!important;}
+@media (prefers-reduced-motion:no-preference){
+  html.has-motion-js:not(.settle-ready) .sheet{transform:rotateX(4.8deg) rotateY(-2.3deg) rotateZ(-3.4deg) translateY(-37px);}
+}
+.sheet::before,.sheet::after{content:none;}
+
+.peel{position:absolute;top:0;right:0;width:58px;height:58px;cursor:pointer;z-index:5;
+  background:transparent;box-shadow:none;overflow:hidden;transition:none;}
+.peel::before{content:"";position:absolute;top:0;right:0;width:0;height:0;
+  border-top:56px solid rgba(205,191,163,.78);border-left:56px solid transparent;}
+.peel::after{content:"";position:absolute;top:0;right:0;width:78px;height:1px;background:rgba(124,111,87,.48);
+  transform:rotate(45deg);transform-origin:100% 0;}
+.peel:hover::before{border-top-color:rgba(205,191,163,.92);}
+a.peel{text-decoration:none;color:inherit;display:block;}
+
+/* 报头 */
+.masthead{text-align:center;border-bottom:4px double var(--rule);padding-bottom:14px;}
+.masthead .corners{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);
+  font-family:system-ui,sans-serif;letter-spacing:1px;text-transform:uppercase;}
+.title{font-size:clamp(40px,7vw,78px);line-height:1.02;margin:.06em 0 .04em;letter-spacing:.06em;
+  font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,.5);}
+.subtitle{font-size:13px;color:var(--muted);font-family:system-ui,sans-serif;letter-spacing:.35em;text-transform:uppercase;}
+.dateline{display:flex;justify-content:center;gap:18px;margin-top:10px;font-size:13px;color:var(--muted);
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:6px 0;font-family:system-ui,sans-serif;}
+
+.weatherbar{margin:16px 0 4px;padding:10px 16px;border:1px solid #c9bfa0;border-left:4px solid var(--accent);
+  background:rgba(255,255,255,.35);font-size:14px;line-height:1.65;position:relative;z-index:30;}
+.weatherbar b{font-family:system-ui,sans-serif;color:var(--accent);letter-spacing:.1em;}
+.city-picker{position:relative;display:inline-block;margin-left:8px;font-family:system-ui,sans-serif;z-index:120;pointer-events:auto;}
+.city-current{cursor:pointer;border:0;border-bottom:1px solid var(--muted);padding:2px 16px 2px 4px;font-size:14px;color:var(--ink);
+  background:transparent url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%235a5347'/></svg>") no-repeat right 2px center/8px 5px;font:inherit;}
+.city-current:hover{border-bottom-color:var(--accent);color:var(--accent);}
+.city-list{display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--paper);border:1px solid #c9bfa0;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);max-height:260px;overflow-y:auto;min-width:100px;}
+.city-list.open{display:block;}
+.city-list button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:5px 14px;cursor:pointer;font:13px/1.35 system-ui,sans-serif;color:var(--ink);white-space:nowrap;}
+.city-list button:hover{background:rgba(122,31,26,.08);color:var(--accent);}
+.city-list button.active{font-weight:700;color:var(--accent);}
+.weather-text{margin-top:8px;white-space:pre-line;}
+
+/* 头版网格：头条 + 导读 */
+.frontgrid{display:grid;grid-template-columns:1fr 270px;gap:34px;margin-top:18px;}
+.lead-label{font-size:13px;letter-spacing:.4em;color:var(--accent);font-family:system-ui,sans-serif;
+  text-transform:uppercase;margin-bottom:6px;}
+.lead-main{display:block;text-decoration:none;color:var(--ink);padding:10px 12px 14px;margin:0 -12px 14px;
+  border-bottom:2px solid var(--rule);position:relative;isolation:isolate;}
+.lead-main .lt{font-size:clamp(28px,4.6vw,46px);line-height:1.14;font-weight:700;display:inline;transition:color .08s;}
+.lead-main .standfirst{font-size:17px;line-height:1.7;color:#34302a;margin-top:10px;font-style:normal;}
+.lead-main .by{font-size:12px;color:var(--muted);font-family:system-ui,sans-serif;margin-top:8px;}
+.lead-rest .hl{display:block;text-decoration:none;color:var(--ink);padding:10px 12px;margin:0 -12px;border-top:1px dotted #b9ac90;
+  position:relative;isolation:isolate;}
+.lead-rest .hl .t{font-size:19px;line-height:1.3;font-weight:700;display:inline;transition:color .08s;}
+.lead-rest .hl .s{display:block;font-size:13.5px;color:#4a443b;line-height:1.55;margin-top:3px;}
+.lead-main::before,.lead-rest .hl::before{content:"📌";position:absolute;top:3px;right:4px;font-size:14px;line-height:1;opacity:0;
+  transition:opacity .08s;pointer-events:none;z-index:3;}
+.lead-main::after,.lead-rest .hl::after{content:"";position:absolute;top:6px;right:6px;bottom:7px;left:6px;
+  border:2.2px dashed rgba(180,40,30,0);border-radius:50% 48% 52% 49% / 44% 48% 52% 56%;
+  outline:1.4px dashed rgba(180,40,30,0);outline-offset:3px;
+  transform:rotate(-7deg) scaleX(.98) scaleY(.94);transform-origin:center;opacity:0;transition:opacity .08s,border-color .08s,outline-color .08s;
+  pointer-events:none;z-index:1;}
+.lead-main:hover::before,.lead-rest .hl:hover::before,.lead-main.hover-proxy::before,.lead-rest .hl.hover-proxy::before{opacity:1;}
+.lead-main:hover::after,.lead-rest .hl:hover::after,.lead-main.hover-proxy::after,.lead-rest .hl.hover-proxy::after{opacity:1;border-color:rgba(180,40,30,.30);
+  outline-color:rgba(180,40,30,.13);}
+.lead-main:hover .lt,.lead-rest .hl:hover .t,.lead-main.hover-proxy .lt,.lead-rest .hl.hover-proxy .t{color:var(--accent);}
+
+.index{border:1px solid var(--rule);background:rgba(255,255,255,.28);padding:14px 16px;height:max-content;}
+.index h3{margin:0 0 10px;font-size:16px;border-bottom:1px solid var(--rule);padding-bottom:6px;letter-spacing:.1em;}
+.index ul{list-style:none;margin:0;padding:0;}
+.index li{margin:0 0 7px;}
+.index a{display:flex;justify-content:space-between;gap:8px;text-decoration:none;color:var(--ink);font-size:14px;}
+.index a:hover,.index a.hover-proxy{color:var(--accent);}
+.index a .pg{color:var(--muted);font-family:system-ui,sans-serif;white-space:nowrap;}
+
+/* 内页 */
+.pagehead{display:flex;align-items:baseline;justify-content:space-between;border-bottom:3px double var(--rule);
+  padding-bottom:8px;margin-bottom:14px;}
+.pagehead h2{margin:0;font-size:26px;letter-spacing:.06em;}
+.pagehead .ed{font-size:12px;color:var(--muted);font-family:system-ui,sans-serif;letter-spacing:.1em;}
+.columns{column-width:320px;column-gap:36px;column-rule:1px solid #cfc2a6;}
+.art{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;display:block;text-decoration:none;
+  color:var(--ink);padding:12px;margin:0 -12px 8px;border-bottom:1px solid #d7cab0;position:relative;isolation:isolate;}
+.art::before{content:"📌";position:absolute;top:7px;right:9px;font-size:14px;line-height:1;opacity:0;
+  transition:opacity .08s;pointer-events:none;z-index:3;}
+.art::after{content:"";position:absolute;top:6px;right:6px;bottom:8px;left:6px;
+  border:2.2px dashed rgba(180,40,30,0);border-radius:50% 48% 52% 49% / 44% 48% 52% 56%;
+  outline:1.4px dashed rgba(180,40,30,0);outline-offset:3px;
+  transform:rotate(-7deg) scaleX(.98) scaleY(.94);transform-origin:center;opacity:0;transition:opacity .08s,border-color .08s,outline-color .08s;
+  pointer-events:none;z-index:1;}
+.art:hover::before,.art.hover-proxy::before{opacity:1;}
+.art:hover::after,.art.hover-proxy::after{opacity:1;border-color:rgba(180,40,30,.30);
+  outline-color:rgba(180,40,30,.13);}
+.art .at{font-size:18px;line-height:1.34;font-weight:700;display:inline;transition:color .08s;}
+.art:hover .at,.art.hover-proxy .at{color:var(--accent);}
+.art .by{font-size:11.5px;color:var(--muted);font-family:system-ui,sans-serif;margin:4px 0 6px;letter-spacing:.03em;}
+.art .as{font-size:14px;line-height:1.66;color:#34302a;margin:0;text-align:justify;}
+.art .more{display:inline-block;margin-top:6px;font-size:12px;color:var(--link);font-family:system-ui,sans-serif;}
+
+/* Epic 卡片 */
+.epic{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;position:relative;z-index:2;}
+.epic a{text-decoration:none;color:inherit;border:1px solid #cfc2a6;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.45);
+  position:relative;transform:translateZ(0);backface-visibility:hidden;transition:border-color .12s,box-shadow .12s,background .12s;}
+.epic a:hover{border-color:#a99a78;background:rgba(255,255,255,.58);box-shadow:0 6px 16px rgba(70,55,34,.14);}
+.epic img{width:100%;height:150px;object-fit:cover;display:block;transform:translateZ(0);backface-visibility:hidden;}
+.epic .ec{padding:10px 12px;}
+.epic .et{font-weight:700;font-size:15px;}
+.epic .em{font-size:12px;color:var(--muted);font-family:system-ui,sans-serif;margin-top:5px;}
+
+.colophon{margin-top:26px;padding-top:12px;border-top:4px double var(--rule);display:flex;justify-content:space-between;
+  font-size:12px;color:var(--muted);font-family:system-ui,sans-serif;letter-spacing:.06em;}
+.colophon a{color:var(--link);text-decoration:none;}
+.colophon a:hover{text-decoration:underline;}
+
+@media (max-width:760px){
+  body{padding:18px 8px 50px;}
+  .physics-controls{left:8px;right:8px;bottom:8px;justify-content:center;flex-wrap:wrap;border-radius:14px;}
+  .sheet{padding:26px 20px 36px;}
+  .frontgrid{grid-template-columns:1fr;}
+  .columns{column-width:auto;column-count:1;}
+}
+@media (prefers-reduced-motion:reduce){
+  .sheet{transform:none!important;}
+}
+@media print{
+  body{background:#fff;padding:0;perspective:none;}
+  .physics-controls{display:none;}
+  .sheet{box-shadow:none;margin:0;page-break-after:always;}
+  .sheet::before,.sheet::after,.peel{display:none;}
+}
+</style>
+<noscript><style>.sheet{transform:none!important;}.physics-controls{display:none!important;}</style></noscript>
+</head>
+<body>
+<div class="physics-controls" aria-label="报纸落下动效控制">
+  <button type="button" class="settle-replay">重落 / Replay</button>
+  <label>力度 <input class="settle-intensity" type="range" min="0" max="2" step="0.1" value="1"><span class="settle-intensity-value">1.0</span></label>
+  <label><input class="settle-motion" type="checkbox" checked> 动效</label>
+</div>
+<div class="stage">
+<div class="sheet front" id="page-1"><a class="peel" href="2026-10-29.html" title="前一天报纸"></a><header class="masthead"><div class="corners"><span>第 20261030 期</span><span>AI 编纂 · 仅供阅读</span></div><h1 class="title">每日早报 2026-10-30</h1><div class="subtitle">THE DAILY DISPATCH</div><div class="dateline"><span>2026年10月30日　星期五</span></div></header><div class="weatherbar"><b>今日天气</b><div class="city-picker"><button type="button" class="city-current">北京</button><div class="city-list"><button type="button" data-city="北京">北京</button><button type="button" data-city="上海">上海</button><button type="button" data-city="广州">广州</button><button type="button" data-city="深圳">深圳</button><button type="button" data-city="成都">成都</button><button type="button" data-city="杭州">杭州</button><button type="button" data-city="武汉">武汉</button><button type="button" data-city="重庆">重庆</button><button type="button" data-city="南京">南京</button><button type="button" data-city="西安">西安</button><button type="button" data-city="苏州">苏州</button><button type="button" data-city="天津">天津</button><button type="button" data-city="郑州">郑州</button><button type="button" data-city="长沙">长沙</button><button type="button" data-city="东莞">东莞</button><button type="button" data-city="青岛">青岛</button><button type="button" data-city="昆明">昆明</button><button type="button" data-city="厦门">厦门</button></div></div><div class="weather-text">晴，气温6~18℃，昼夜温差大，白天晴朗舒适，早晚偏凉。
+🌅 早晨（~8:00）：气温6℃，体感4℃左右，偏冷，建议穿厚外套或薄羽绒，骑车可戴手套；天气晴，无需带伞，紫外线不强。
+☀️ 中午（~12:00）：气温15℃左右，午后最高18℃，体感较舒适，可脱掉厚外套，穿长袖或薄毛衣。
+🌇 傍晚（~18:00）：气温17℃，体感约12℃，东南风小，凉意渐起，建议加件风衣或薄外套。
+🌙 夜间（~21:00）：气温10℃，体感7℃，晴朗少云，温差大，出门记得加衣，睡觉盖薄被。
+洗车和运动指数极佳，空气良，适合户外活动和洗车。</div></div><div class="frontgrid"><div class="lead"><div class="lead-label">今日头条</div><a class="lead-main" href="https://www.chinanews.com.cn/gn/2026/10-30/10723104.shtml" target="_blank" rel="noopener"><span class="lt">中共中央今举行新闻发布会 解读党的二十届五中全会精神</span><p class="standfirst">中共中央于10月30日上午10时举行新闻发布会，介绍和解读党的二十届五中全会精神。五中全会决定，中国共产党第二十一次全国代表大会于2027年下半年在北京召开。发布会将就全会审议通过的重要文件与未来一个时期党的建设、改革发展部署作出权威说明。</p><div class="by">中新网</div></a><div class="lead-rest"><a class="hl" href="https://www.chinanews.com.cn/cj/2026/10-30/10723142.shtml" target="_blank" rel="noopener"><span class="t">A股开盘：超4900只个股飘绿，三大指数集体低开</span><span class="s">10月30日A股三大指数集体低开，下跌个股超过4900只。通信设备、半导体板块大幅回调，白酒、银行逆势飘红。市场情绪偏弱，前期热门科技成长方向遭遇明显抛压，资金向防御性板块切换。</span></a><a class="hl" href="https://www.techmeme.com/261029/p58#a261029p58" target="_blank" rel="noopener"><span class="t">币安暂停存取款并调查安全事件，可疑流出资金最高达58亿美元</span><span class="s">币安10月29日表示正在调查一个潜在安全事件，可疑资金流出规模最高达58亿美元。Tether已冻结超15亿USDT，Circle冻结超8亿USDC。币安美国表示未受影响，但事件已对加密货币市场造成明显冲击。</span></a><a class="hl" href="https://slashdot.org/story/26/10/29/1756212/alphabet-heads-for-a-500-billion-drop-in-market-value?utm_source=rss1.0mainlinkanon&amp;utm_medium=feed" target="_blank" rel="noopener"><span class="t">谷歌母公司Alphabet股价大跌13%，市值蒸发逾5000亿美元</span><span class="s">谷歌披露AI模式搜索带来的收入低于传统搜索后，Alphabet股价单日一度大跌13%，市值蒸发超过5000亿美元。整体搜索收入仍同比增长12%至632.5亿美元，但AI变现效率引发投资者担忧，拖累科技板块情绪。</span></a><a class="hl" href="https://www.chinanews.com.cn/gj/2026/10-30/10723102.shtml" target="_blank" rel="noopener"><span class="t">美国第三季度经济增长3.4% 好于市场预期</span><span class="s">美国商务部首次预估数据显示，第三季度美国实际GDP环比按年率增长3.4%，好于市场预期。消费和库存等因素支撑增长，显示美国经济仍具韧性。该数据或影响美联储后续利率决策。</span></a><a class="hl" href="https://www.chinanews.com.cn/gj/2026/10-30/10723084.shtml" target="_blank" rel="noopener"><span class="t">乌克兰基辅深夜遭弹道导弹袭击</span><span class="s">乌克兰媒体10月29日报道，首都基辅深夜传出爆炸声，遭弹道导弹袭击。袭击造成破坏，目前伤亡情况正在统计。基辅近期多次成为俄军空袭目标，当地防空系统持续拦截，紧张局势未见缓解。</span></a><a class="hl" href="https://www.chinanews.com.cn/gj/2026/10-30/10723083.shtml" target="_blank" rel="noopener"><span class="t">美军中央司令部司令向特朗普汇报对伊朗军事选项</span><span class="s">美军中央司令部司令布拉德·库珀10月29日在白宫向特朗普汇报针对伊朗的军事行动选项，国防部长赫格塞思和参联会主席丹·凯恩参加。近期美伊紧张升级，美国军机密集飞抵以色列，地区安全风险上升。</span></a><a class="hl" href="https://www.nytimes.com/2026/10/29/arts/television/patrick-stewart-dead.html" target="_blank" rel="noopener"><span class="t">“X教授”饰演者帕特里克·斯图尔特去世，享年86岁</span><span class="s">因在《星际迷航》中饰演皮卡德舰长和《X战警》中饰演X教授而闻名的英国演员帕特里克·斯图尔特10月29日去世，享年86岁。他长期与阿尔茨海默病和路易体痴呆作斗争。全球影迷和演艺界人士纷纷悼念。</span></a></div></div><aside class="index"><h3>本期导读</h3><ul><li><a href="#page-2"><span>🤖 AI与大模型</span><span class="pg">第 2 版</span></a></li><li><a href="#page-3"><span>💻 开发与编程</span><span class="pg">第 3 版</span></a></li><li><a href="#page-4"><span>🔬 科技与科学</span><span class="pg">第 4 版</span></a></li><li><a href="#page-5"><span>🌍 国际</span><span class="pg">第 5 版</span></a></li><li><a href="#page-6"><span>🇨🇳 国内时政</span><span class="pg">第 6 版</span></a></li><li><a href="#page-7"><span>💰 财经商业</span><span class="pg">第 7 版</span></a></li><li><a href="#page-8"><span>🚀 创业与产品</span><span class="pg">第 8 版</span></a></li><li><a href="#page-9"><span>🎮 游戏</span><span class="pg">第 9 版</span></a></li><li><a href="#page-10"><span>🎬 文化娱乐</span><span class="pg">第 10 版</span></a></li><li><a href="#page-11"><span>💬 观点·社论</span><span class="pg">第 11 版</span></a></li><li><a href="#page-12"><span>🎁 Epic 免费游戏</span><span class="pg">第 12 版</span></a></li></ul></aside></div><div class="colophon"><span>第 1 版 · 头版</span><a href="../archive.html">查看往期 →</a></div></div><div class="sheet" id="page-2"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>🤖 AI与大模型</h2><span class="ed">第 2 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://techcrunch.com/2026/10/29/mistral-releases-weights-for-its-trillion-parameter-ai-model-targeting-cybersecurity/" target="_blank" rel="noopener"><span class="at">Mistral开源万亿参数大模型权重，重点面向网络安全</span><div class="by">TechCrunch</div><p class="as">Mistral发布了万亿参数AI模型Mistral Large 4的权重，这是其迄今最大规模的开源模型，重点面向网络安全场景。开放权重使组织能自行部署和微调安全防御能力，减少对闭源模型的依赖。该模型在多项评测中表现突出。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://openai.com/index/updated-model-spec" target="_blank" rel="noopener"><span class="at">OpenAI更新模型规范，强调判断力、人类自主性与意图忠实</span><div class="by">OpenAI</div><p class="as">OpenAI发布更新的Model Spec，提出五项核心价值观，引导更强大AI具备稳健判断、人类自主性和对人类意图的忠实。该规范旨在为模型行为提供原则性框架，平衡能力提升与安全可用性。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://openai.com/index/how-we-detect-frontier-model-misalignment" target="_blank" rel="noopener"><span class="at">OpenAI披露前沿模型失准检测机制</span><div class="by">OpenAI</div><p class="as">OpenAI公布其前沿模型失准检测方法，通过分层监控识别模型越权行为与未授权agent行为，以便在事件升级前介入。该机制是AI安全治理的重要探索，旨在降低前沿模型部署风险。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.marktechpost.com/2026/10/28/nvidia-nemotron-3-5-transcribe-open-speech-llm/" target="_blank" rel="noopener"><span class="at">NVIDIA发布开源语音模型Nemotron 3.5 Transcribe，支持40种语言转录</span><div class="by">MarkTechPost</div><p class="as">NVIDIA推出开源语音模型Nemotron 3.5 Transcribe，采用30B MoE架构，约43亿活跃参数，可转录40种语言并输出说话人标签与时间戳。其在英语开源语音识别榜上平均词错率为4.71%，面向企业级语音应用。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.marktechpost.com/2026/10/29/block-dessa-full-duplex-speech-model/" target="_blank" rel="noopener"><span class="at">Block发布全双工语音模型Dessa，仅用人类对话音频训练</span><div class="by">MarkTechPost</div><p class="as">Block旗下AI实验室发布全双工语音到语音模型Dessa，仅用人类对话音频训练，可在MacBook Pro本地运行。官方未公布参数规模、基准和权重，但演示显示其具备自然打断和端到端对话能力。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.marktechpost.com/2026/10/29/assemblyai-tts-1-text-to-speech-api-voice-agents/" target="_blank" rel="noopener"><span class="at">AssemblyAI推出语音合成API，面向智能语音代理</span><div class="by">MarkTechPost</div><p class="as">AssemblyAI发布其首个面向语音代理的TTS模型AssemblyAI-TTS-1，每百万字符15美元，支持六种语言和无合同无限并发。该定价和规模旨在降低语音AI应用门槛，加速实时语音代理落地。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.marktechpost.com/2026/10/29/baseten-joey-1-2b-decision-model/" target="_blank" rel="noopener"><span class="at">Baseten推出20亿参数决策模型joey-1，每百万token仅0.01美元</span><div class="by">MarkTechPost</div><p class="as">Baseten发布开源权重决策模型joey-1，拥有20亿参数，返回校准概率而非文本，延迟约20毫秒，输入成本仅0.01美元每百万token。该模型适合高风险自动化决策中的置信度判断，降低AI推理成本。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.marktechpost.com/2026/10/29/prime-intellect-prime-mega-moe-fused-moe-kernel-training/" target="_blank" rel="noopener"><span class="at">Prime Intellect发布可训练MoE内核，前向加速3.11倍</span><div class="by">MarkTechPost</div><p class="as">Prime Intellect发布Prime Mega MoE，补全DeepSeek融合MoE内核的反向传播，使其可训练，并将Qwen3 MoE训练步骤速度提升34%。该内核宣称前向传播加速3.11倍，有助降低大规模MoE模型训练成本。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/meta-quietly-launches-an-ai-fashion-app-called-style-sketch/" target="_blank" rel="noopener"><span class="at">Meta悄悄推出AI时尚应用Style Sketch，先在新加坡印尼泰国上线</span><div class="by">TechCrunch</div><p class="as">Meta在印度尼西亚、新加坡和泰国低调上线AI时尚应用Style Sketch，用户可连接Instagram，用已有衣物照片生成穿搭方案。该应用帮助用户整理虚拟衣橱，提供个性化搭配灵感，是Meta在消费AI领域的新尝试。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/as-search-traffic-dries-up-reddit-announces-its-shifting-to-a-logged-in-experience/" target="_blank" rel="noopener"><span class="at">搜索流量下滑，Reddit宣布转向必须登录的浏览体验</span><div class="by">TechCrunch</div><p class="as">随着AI改变信息检索方式，Reddit宣布将逐步转向要求登录的体验，以保护社区内容与商业价值。此举意在减少搜索引擎和AI爬虫带来的流量流失，但可能影响匿名用户和开放网络生态。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/rivian-expands-joint-venture-with-vw-to-include-ai-assistant/" target="_blank" rel="noopener"><span class="at">Rivian扩大与大众合资，加入AI语音助手</span><div class="by">TechCrunch</div><p class="as">Rivian宣布扩大与大众集团58亿美元合资范围，将共同开发AI语音助手。双方此前已在电动车架构和软件上合作，此次增加AI能力旨在提升车内智能化体验，但Rivian未披露合资估值是否变化。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/ex-palantir-execs-launch-dream-with-17m-from-a16z-to-build-ai-world-models-for-construction/" target="_blank" rel="noopener"><span class="at">前Palantir高管创立Dream，获a16z 1700万美元构建建筑AI世界模型</span><div class="by">TechCrunch</div><p class="as">前Palantir高管创办Dream，获a16z等1700万美元融资，构建面向建筑业的AI世界模型。该模型基于美国超1亿平方英尺建筑许可数据训练，融合真实物理和建筑规范，帮助规划、施工模拟与风险预测。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/wabi-the-ai-agent-that-builds-mini-apps-now-valued-at-1-25b-after-latest-round/" target="_blank" rel="noopener"><span class="at">AI代理Wabi融资5500万美元，估值12.5亿美元</span><div class="by">TechCrunch</div><p class="as">AI个人代理Wabi宣布完成5500万美元融资，估值达12.5亿美元。该应用能自动构建小型应用，正从工具转型为个人代理，帮助用户自动化日常数字任务，反映出AI代理赛道快速升温。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/deepgram-acquires-pipecat-maker-daily-to-bolster-its-voice-ai-infrastructure/" target="_blank" rel="noopener"><span class="at">Deepgram收购Pipecat开发商Daily，强化语音AI基础设施</span><div class="by">TechCrunch</div><p class="as">语音AI公司Deepgram宣布收购实时音频视频基础设施开发商Daily，后者是开源框架Pipecat的创建者。此次收购将增强Deepgram在实时语音和视频传输方面的技术能力，完善其语音代理基础设施布局。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.zhihu.com/question/2098940094346433079" target="_blank" rel="noopener"><span class="at">中科大学生可享每日一亿token免费AI算力</span><div class="by">知乎</div><p class="as">中国科学技术大学推出面向学生的AI算力福利，每位学生每天可获得一亿token的免费使用额度，零费用、无门槛且每日重置。该举措旨在推动AI在校园教学和科研中的普及，被网友称为高校AI普惠的示范。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-3"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>💻 开发与编程</h2><span class="ed">第 3 版 / 共 12 版</span></div><div class="columns"><a class="art" href="http://blog.mistys-internet.website/post/2026/10/29/if-you-love-a-website-back-it-up/" target="_blank" rel="noopener"><span class="at">如果你爱一个网站，就把它备份下来</span><div class="by">lobsters</div><p class="as">一篇技术随笔提醒用户主动备份喜欢的网站，因为关停、改版或数据丢失随时可能发生。作者以个人网站维护经验说明，简单的抓取和存储习惯能保留有价值的内容，应对网络信息的不确定性。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://lapcatsoftware.com/articles/2026/10/10.html" target="_blank" rel="noopener"><span class="at">为功能而非熟悉感设计界面</span><div class="by">lapcatsoftware</div><p class="as">文章认为软件界面应优先服务功能，而非一味追求用户熟悉感。作者通过案例指出，过度模仿既有交互会限制创新和效率，设计者应在可用性与新颖性之间做出更理性的取舍。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://0x67673068.me/xss-in-yarr/" target="_blank" rel="noopener"><span class="at">yarr RSS阅读器发现XSS漏洞</span><div class="by">lobsters</div><p class="as">安全研究员披露yarr RSS阅读器存在跨站脚本漏洞，并介绍发现过程与利用条件。该漏洞可能影响自托管用户的数据安全，建议尽快升级或采取防护措施。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://nim-lang.org/blog/2026/10/28/nim-240.html" target="_blank" rel="noopener"><span class="at">Nim 2.4.0发布</span><div class="by">Nim博客</div><p class="as">Nim语言发布2.4.0版本，包含语言、编译器和标准库的多项改进与新特性。此次更新继续优化性能、宏系统和跨平台支持，为系统编程和工具开发提供更稳定的基础。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://mastodon.sdf.org/@netbsd/117518160563539748" target="_blank" rel="noopener"><span class="at">NetBSD新增文本编辑器atto</span><div class="by">NetBSD</div><p class="as">NetBSD操作系统中新增了名为atto的文本编辑器，为系统提供更轻量的文本编辑选择。atto设计简洁，适合在有限资源环境下使用，进一步丰富NetBSD基础工具链。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://redmonk.com/kholterhoff/2026/10/27/js-runtime-monoculture/" target="_blank" rel="noopener"><span class="at">网络无法承受JavaScript运行时单一文化</span><div class="by">RedMonk</div><p class="as">RedMonk文章讨论JavaScript运行时生态过度集中的风险，认为Node.js等主流运行时的主导地位可能抑制多元发展。作者呼吁保持多种运行时竞争，以维护Web开发的韧性和创新活力。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://blog.yoshuawuyts.com/the-future-trait-has-a-missing-state" target="_blank" rel="noopener"><span class="at">Rust的Future trait缺少一种状态</span><div class="by">lobsters</div><p class="as">文章分析Rust异步编程中Future trait的设计，指出其缺少一种必要状态，可能导致取消、资源清理和异步组合时的语义问题。作者提出改进思路，对异步运行时设计具有参考价值。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://v12.sh/blog/the-case-of-the-9bit-aes-key" target="_blank" rel="noopener"><span class="at">9位AES密钥之谜</span><div class="by">lobsters</div><p class="as">文章记录了一次对异常AES密钥的调试过程，最终定位到9位错误。作者通过细致排查说明密码学实现中数据边界和复制操作的陷阱，提醒开发者在安全关键代码中保持严格验证。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://nixtamal.toast.al/cookbook/nixos-using-nixtamal/" target="_blank" rel="noopener"><span class="at">使用Nixtamal构建NixOS</span><div class="by">lobsters</div><p class="as">文章介绍使用Nixtamal工具构建NixOS系统的方法，结合Nix的声明式配置和可靠性优势，展示可复现的系统部署流程。内容适合关注基础设施即代码的开发者参考。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://dreamgroup.com/blog/chained-php2shell-exploit-roots-25-servers" target="_blank" rel="noopener"><span class="at">PHP2Shell漏洞链入侵25台服务器，含美国政府服务器</span><div class="by">Dreamgroup</div><p class="as">安全团队披露一组PHP漏洞利用链，已攻陷25台服务器，其中包含美国政府服务器。攻击者通过串联多个PHP配置缺陷实现远程代码执行，凸显Web服务器加固和漏洞管理的重要性。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-4"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>🔬 科技与科学</h2><span class="ed">第 4 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-30/10723093.shtml" target="_blank" rel="noopener"><span class="at">我国深海装备加快创新突破，前三季度海洋经济平稳增长</span><div class="by">中新网</div><p class="as">自然资源部介绍，前三季度我国海洋经济总量保持平稳增长，海工装备制造竞争力提升。科研力量围绕核心零部件、感知设备和传输系统协同攻关，从机械臂到无线光通信技术持续推动深海装备创新。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-30/10723089.shtml" target="_blank" rel="noopener"><span class="at">“中国蓝色海湾整治行动”获评联合国世界生态恢复旗舰项目</span><div class="by">中新社</div><p class="as">在亚美尼亚举行的《生物多样性公约》第十七次缔约方大会上，联合国环境规划署宣布“中国蓝色海湾整治行动”获评2026年世界生态恢复旗舰项目。该行动由自然资源部、财政部牵头，在海洋生态保护修复方面取得突出成效。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722940.shtml" target="_blank" rel="noopener"><span class="at">《自然》：非洲水资源未充分利用，缺水或源于基础设施不足</span><div class="by">中新网</div><p class="as">《自然》一项研究指出，非洲部分地区的用水紧张可能并非缺少水源，而是基础设施不到位。研究说明非洲水资源未被充分利用，完善储水、输水和灌溉设施比简单增加开采更能缓解缺水。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723003.shtml" target="_blank" rel="noopener"><span class="at">预计2026年底中国非化石能源发电装机占比约63%</span><div class="by">中新社</div><p class="as">中电联发布报告预测，到2026年底全国发电装机容量约43亿千瓦，非化石能源装机约27亿千瓦，占比63%左右。清洁能源比重持续提升，反映电力结构绿色转型加快推进。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-29/10722998.shtml" target="_blank" rel="noopener"><span class="at">呼和浩特发布42个航空航天合作方向，聚焦低空经济与商业航天</span><div class="by">中新网</div><p class="as">呼和浩特召开航空航天产业产需对接会，发布42个重点合作方向，涉及低空经济和商业航天两条赛道。当地面向企业及投资机构梳理引资项目和应用场景需求，推动空天产业链集聚发展。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://news.slashdot.org/story/26/10/29/1741210/canada-to-join-eu-network-of-supercomputers?utm_source=rss1.0mainlinkanon&amp;utm_medium=feed" target="_blank" rel="noopener"><span class="at">加拿大加入欧盟超级计算机网络，强化AI算力合作</span><div class="by">Slashdot</div><p class="as">加拿大宣布加入欧盟超级计算机网络，为本土企业、初创公司和研究人员提供欧洲计算资源用于AI开发。该合作旨在加强双方AI协作并降低对美国技术的依赖，是跨大西洋科技合作的新进展。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://slashdot.org/story/26/10/29/0436243/ink-droplets-in-motion-snag-top-prize-in-nikon-small-world-contest?utm_source=rss1.0mainlinkanon&amp;utm_medium=feed" target="_blank" rel="noopener"><span class="at">墨水微滴运动摘得尼康微观世界摄影大赛冠军</span><div class="by">Slashdot</div><p class="as">25岁德国摄影师奥莱·比尔费尔特凭借一张捕捉喷墨打印机墨水微滴空中运动的显微照片，赢得2026年尼康微观世界摄影大赛冠军。该作品从69个国家1802份参赛作品中脱颖而出，展现科学与艺术的结合。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723063.shtml" target="_blank" rel="noopener"><span class="at">国产鲜切花月季“文秀”“娇龙”正式上市</span><div class="by">中新网</div><p class="as">云南自主培育的鲜切花月季品种“文秀”“娇龙”10月29日正式上市，面向全国消费者销售。作为承载时代精神的“中国芯”鲜切花，两个品种的推出显示我国花卉育种技术提升和自主品种商业化步伐加快。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-5"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>🌍 国际</h2><span class="ed">第 5 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-30/10723112.shtml" target="_blank" rel="noopener"><span class="at">针对美方无端攻击，中国驻墨西哥使馆发表严正声明</span><div class="by">中新网</div><p class="as">美国驻墨西哥大使等官员近期在墨西哥公开攻击中国和中墨合作，妄称中国企业不可信。中国驻墨西哥使馆表示强烈不满和坚决反对，指出相关言论罔顾事实、颠倒黑白，蓄意挑拨中墨关系。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-30/10723117.shtml" target="_blank" rel="noopener"><span class="at">金正恩出席朝鲜无人航空技术发展展览会</span><div class="by">中新网</div><p class="as">朝鲜“无人航空技术发展-2026”展览会10月29日举行，劳动党总书记、国务委员长金正恩出席。展览展示朝鲜在无人机领域的技术成果，突显其持续推进无人作战和航空技术发展的意图。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-30/10723106.shtml" target="_blank" rel="noopener"><span class="at">美国一高级将领被解职，涉嫌泄露涉伊朗战争机密</span><div class="by">中新网</div><p class="as">据美国哥伦比亚广播公司报道，国防部长赫格塞思已解除负责战略规划的高级将领布雷特·西尔维亚的职务。消息称解职与涉嫌泄露涉及伊朗的战争机密有关，反映出美国军方对敏感信息管控的收紧。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-30/10723101.shtml" target="_blank" rel="noopener"><span class="at">欧盟向毛里塔尼亚提供2000万欧元军事援助</span><div class="by">中新社</div><p class="as">欧盟宣布动用欧洲和平基金，向西非萨赫勒地区国家毛里塔尼亚提供2000万欧元军事援助。此举旨在支持当地反恐和稳定能力，也体现欧盟在萨赫勒安全事务中的持续投入。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-30/10723099.shtml" target="_blank" rel="noopener"><span class="at">普京警告：若俄欧真开战，将不会有赢家</span><div class="by">中新网</div><p class="as">俄罗斯总统普京表示俄罗斯不希望与欧洲发生战争，但已做好准备。他警告称，一旦俄欧走到战争那一步，不会有赢家。相关言论正值俄乌冲突长期化和欧洲安全格局紧张之际。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-30/10723088.shtml" target="_blank" rel="noopener"><span class="at">超10架美国军机飞抵以色列空军基地</span><div class="by">中新网</div><p class="as">分析人士监测发现，过去一周有10多架美国军用运输机降落在以色列南部空军基地。具体载货不明，但外界推测与在可能对伊朗新一轮冲突前加强地区防空能力有关。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-30/10723086.shtml" target="_blank" rel="noopener"><span class="at">西班牙公布高铁追尾事故首份报告，相撞时速或达160至200公里</span><div class="by">中新网</div><p class="as">西班牙独立调查机构发布托莱多省高铁事故首份报告，估计追尾列车与停滞列车相撞时速在160至200公里之间，具体数据待车载记录仪审查。事故导致严重伤亡，最终责任认定仍有待进一步调查。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10723035.shtml" target="_blank" rel="noopener"><span class="at">韩国前总统尹锡悦涉内乱案二审被判求死刑</span><div class="by">中新社</div><p class="as">韩国负责调查紧急戒严事件的特别检察组以涉嫌带头发动内乱为由，请求二审法庭判处前总统尹锡悦死刑。案件进入二审后争议升级，引发韩国社会对司法程序和政治清算的关注。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722675.shtml" target="_blank" rel="noopener"><span class="at">所罗门群岛总理被送往澳大利亚接受紧急治疗</span><div class="by">中新网</div><p class="as">所罗门群岛总理马修·威尔被送往澳大利亚接受紧急医疗救治。官方尚未公布具体病情，但领导人健康危机可能对这个小太平洋岛国的政治稳定与治理产生不确定性。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722626.shtml" target="_blank" rel="noopener"><span class="at">日本千叶县东北部发生5.4级地震，东京有震感</span><div class="by">中新网</div><p class="as">日本气象厅消息称，千叶县东北部10月29日发生5.4级地震，东京等地有震感。目前暂无重大损失和人员伤亡报告。日本地处地震多发带，相关地区持续监测余震风险。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722547.shtml" target="_blank" rel="noopener"><span class="at">巴西警方调查落选候选人弗拉维奥违反离境禁令</span><div class="by">中新网</div><p class="as">巴西联邦警察正在调查总统选举落败候选人弗拉维奥·博索纳罗违反司法禁令离开巴西的情况。他已携家人抵达美国迈阿密，并发表公开信质疑选举结果，感谢特朗普和米莱支持，巴西政局不确定性上升。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722934.shtml" target="_blank" rel="noopener"><span class="at">以色列两大阵营均未获多数议席，组阁前景复杂</span><div class="by">中新网</div><p class="as">以色列中央选举委员会公布议会选举初步计票结果，内塔尼亚胡领导的右翼阵营领先，但双方均未获得多数席位。不同组阁方案将影响以色列内外政策走向，尤其是对伊朗和巴勒斯坦问题立场。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722812.shtml" target="_blank" rel="noopener"><span class="at">泽连斯基：乌方愿进行任何形式谈判，准备好讨论任何议题</span><div class="by">中新网</div><p class="as">乌克兰总统泽连斯基表示，俄乌和平谈判将在美国中期选举后数日内举行，预计由美国代表团牵头在阿联酋阿布扎比举行。乌方愿进行任何形式的谈判，并准备好讨论任何议题，显示和谈窗口有望打开。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722760.shtml" target="_blank" rel="noopener"><span class="at">埃及出兵支持沙特，强调只做“护盾”</span><div class="by">中新网</div><p class="as">埃及议会批准政府采取一切必要措施，支持沙特捍卫领土和主权。埃及强调其角色是“护盾”而非参与也门冲突。此举加剧中东地缘博弈，可能影响红海和海湾地区安全态势。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722989.shtml" target="_blank" rel="noopener"><span class="at">一艘商船在保加利亚黑海沿岸被无人机击中沉没</span><div class="by">中新网</div><p class="as">保加利亚海事部门称，一艘悬挂利比里亚国旗的商船在黑海沿岸被无人机击中后沉没。事件显示黑海航运安全风险上升，无人机袭击已从军事目标扩展到民用船舶，区域紧张局势加深。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722882.shtml" target="_blank" rel="noopener"><span class="at">外媒聚焦：德国总统访华释放积极信号，中德务实合作前景广阔</span><div class="by">中新网</div><p class="as">德国总统施泰因迈尔10月27日至31日对中国进行国事访问，多家外媒报道称这表明德国高度重视对华关系。此次访问被认为将推进中德双方务实合作，挖掘更多发展机遇。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-6"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>🇨🇳 国内时政</h2><span class="ed">第 6 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-30/10723125.shtml" target="_blank" rel="noopener"><span class="at">人民日报社论：把我们党建设得更好、更强</span><div class="by">新华社</div><p class="as">人民日报10月30日发表社论，强调把我们党建设得更好、更强。文章围绕党的建设、治理能力和长期执政展开论述，为学习贯彻党的二十届五中全会精神提供思想引领。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-30/10723130.shtml" target="_blank" rel="noopener"><span class="at">中国海警在仁爱礁仙宾礁海域开展海上综合执法训练</span><div class="by">中新网</div><p class="as">中国海警东安舰编队近日在仁爱礁、仙宾礁海域开展海上综合执法训练，巩固提高现场执法管控能力。此次训练展示中国在南海有关海域的常态化存在与维权执法能力。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-30/10723109.shtml" target="_blank" rel="noopener"><span class="at">去年我国培育高素质农民61.36万人</span><div class="by">中新网</div><p class="as">中央农业广播电视学校报告显示，去年全国培育高素质农民61.36万人，各地持续推进农村实用人才带头人培训和“头雁”项目。多层次培养乡土人才，为乡村全面振兴提供人力支撑。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-29/10723067.shtml" target="_blank" rel="noopener"><span class="at">王毅同冰岛外长贡纳尔斯多蒂尔会谈</span><div class="by">中新社</div><p class="as">中共中央政治局委员、外交部长王毅10月29日在北京同冰岛外长贡纳尔斯多蒂尔举行会谈。双方就中冰关系、务实合作及共同关心的国际地区问题交换意见，推动中冰友好合作发展。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-29/10723073.shtml" target="_blank" rel="noopener"><span class="at">中宣部召开学习宣传贯彻党的二十届五中全会精神会议</span><div class="by">新华社</div><p class="as">中宣部29日晚召开电视电话会议，部署学习宣传贯彻党的二十届五中全会精神。中共中央政治局委员、中宣部部长李书磊出席并讲话，要求迅速兴起学习热潮，统一思想和行动。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-29/10723037.shtml" target="_blank" rel="noopener"><span class="at">两岸专家呼吁坚定中华文化认同，促进心灵契合</span><div class="by">中新社</div><p class="as">第十二届中华文化论坛在北京举行，两岸多位专家呼吁坚定中华文化认同，促进两岸同胞心灵契合。与会者围绕文化传承、青年交流等议题探讨，强调中华文化是两岸共同的根和纽带。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-29/10723002.shtml" target="_blank" rel="noopener"><span class="at">第十七届海峡两岸文博会厦门开幕，台湾工艺师以艺会友</span><div class="by">中新社</div><p class="as">第十七届海峡两岸文化产业博览交易会10月29日在厦门开幕，汇聚1000余家海内外机构，展出近千件工艺精品。台湾工艺师以艺会友，推动两岸文化产业交流、合作与民间情感联结。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-29/10723080.shtml" target="_blank" rel="noopener"><span class="at">2023年以来江西法院办理司法救助案件1.1万余件</span><div class="by">中新网</div><p class="as">江西省高级人民法院通报，2023年以来江西法院共办理司法救助案件11319件。通过救助困难当事人，发挥司法救助扶危济困功能，提升民生司法保障水平。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-29/10723039.shtml" target="_blank" rel="noopener"><span class="at">青海省第八座民用运输机场完成投产校飞</span><div class="by">中新社</div><p class="as">青海省海南州共和机场10月29日完成投产校飞，成为青海第八座民用运输机场。新机场将改善海南州交通条件，带动高原地区文旅和经济交流。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gn/2026/10-29/10723055.shtml" target="_blank" rel="noopener"><span class="at">新疆兵团优化妇女儿童发展环境，提升维权服务质效</span><div class="by">中新网</div><p class="as">新疆生产建设兵团介绍“十四五”期间妇女儿童事业发展成就，推动构建覆盖生存、发展、保护全过程的政策保障网络。当地妇联表示，妇女儿童获得感、幸福感和安全感显著增强。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-7"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>💰 财经商业</h2><span class="ed">第 7 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-30/10723135.shtml" target="_blank" rel="noopener"><span class="at">海南自贸港再迎政策支持，16条举措助力发展</span><div class="by">中新网</div><p class="as">海南自由贸易港迎来新的政策支持，16条举措出台助力发展。相关政策聚焦维修再制造、投资贸易便利等领域，旨在降低企业成本、优化营商环境，加快建设具有国际竞争力的自贸港。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-30/10723126.shtml" target="_blank" rel="noopener"><span class="at">10月30日央行开展150亿元7天期逆回购操作</span><div class="by">中新网</div><p class="as">中国人民银行10月30日以固定利率、数量招标方式开展150亿元7天期逆回购操作，全额满足一级交易商需求。此举有助于维护银行体系流动性合理充裕，保持短端资金利率稳定。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-30/10723119.shtml" target="_blank" rel="noopener"><span class="at">人民币对美元中间价报6.7138，上调9个基点</span><div class="by">中新网</div><p class="as">中国外汇交易中心公布，10月30日人民币对美元汇率中间价为6.7138元，较前日上调9个基点。中间价小幅上调反映市场供求变化，人民币汇率总体保持双向波动弹性。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-30/10723129.shtml" target="_blank" rel="noopener"><span class="at">前三季度全国规模以上文化企业营收增长4.3%</span><div class="by">中新网</div><p class="as">国家统计局数据显示，前三季度全国8.3万家规模以上文化及相关产业企业实现营业收入108210亿元，同比增长4.3%。其中文化新业态16个行业小类营收53827亿元，增长8.9%，快于整体4.6个百分点。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723070.shtml" target="_blank" rel="noopener"><span class="at">前三季度海南货物贸易跨境人民币收付同比增长超五成</span><div class="by">中新网</div><p class="as">中国人民银行海南省分行公布，前9个月海南跨境人民币收付额达4362亿元，同比增长16.9%；其中货物贸易跨境人民币收付额1074亿元，同比增长51%，占本外币跨境收付比重升至30.5%。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-30/10723100.shtml" target="_blank" rel="noopener"><span class="at">2025年欧盟和欧元区宏观税负水平双双走高</span><div class="by">中新社</div><p class="as">欧盟统计局数据显示，2025年欧盟宏观税负为40.7%，欧元区为41.3%，较2024年双双走高。宏观税负上升反映税收和社保缴款占GDP比重提高，为财政政策可持续性带来压力。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-30/10723095.shtml" target="_blank" rel="noopener"><span class="at">美国稀土计划遭重挫</span><div class="by">中新网</div><p class="as">美国曾高调宣称要终结对中国稀土供应链的“扼制”，但相关本土稀土永磁体项目进展受挫。报道指出，资金、技术、成本和产业链配套等短板制约美国稀土独立战略，短期难以摆脱对中国加工的依赖。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723071.shtml" target="_blank" rel="noopener"><span class="at">“北京太古坊”正式启用，为太古地产内地单体投资最高项目</span><div class="by">中新网</div><p class="as">太古地产宣布北京颐堤港项目正式更名为“北京太古坊”，并将现有项目与二期扩建部分统一纳入“太古坊”品牌。这是太古地产在中国内地单体投资额最高的项目，位于朝阳区，成为新的商业地标。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723001.shtml" target="_blank" rel="noopener"><span class="at">科创芯片ETF将通过沪港互挂进入香港市场</span><div class="by">中新社</div><p class="as">上交所消息称，科创芯片ETF将通过沪港ETF互挂机制进入香港市场。这将丰富香港市场的科创主题产品，便利境外投资者配置内地芯片板块，深化两地资本市场互联互通。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723006.shtml" target="_blank" rel="noopener"><span class="at">广州南沙四期自动化码头正式开通外贸业务</span><div class="by">中新社</div><p class="as">粤港澳大湾区首个全新建造的全自动化集装箱码头——广州港南沙港区四期码头10月29日正式开通外贸业务。该码头提升区域航运枢纽效率，为珠三角外贸通道注入新动能。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10722965.shtml" target="_blank" rel="noopener"><span class="at">前三季度内蒙古金融机构贷款余额超3.4万亿元</span><div class="by">中新网</div><p class="as">中国人民银行内蒙古自治区分行通报，前三季度全区人民币各项贷款余额34090.7亿元，较年初新增1451.8亿元，同比增长6.2%。信贷投放平稳增长，支持实体经济和重点领域恢复。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723013.shtml" target="_blank" rel="noopener"><span class="at">超2万亿元、超2.5亿人次：绿色智能引领消费释放内需活力</span><div class="by">中新网</div><p class="as">数据显示，绿色智能产品带动消费超2万亿元、参与超2.5亿人次。以旧换新等政策激发内需活力，绿色、智能商品成为消费新热点，推动居民消费结构升级和经济增长。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723007.shtml" target="_blank" rel="noopener"><span class="at">央行上海总部：9月末上海“五篇大文章”贷款余额同比增长11.6%</span><div class="by">中新网</div><p class="as">央行上海总部介绍，9月末上海科技金融、绿色金融、普惠金融、养老金融、数字金融“五篇大文章”贷款余额同比增长11.6%，持续高于各项贷款增速，金融服务实体经济的精准性和有效性增强。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/cj/2026/10-29/10723082.shtml" target="_blank" rel="noopener"><span class="at">2026中国贵金属论坛举行，AI与贵金属“双向奔赴”成焦点</span><div class="by">中新网</div><p class="as">2026年中国贵金属论坛在昆明开幕，AI与人工智能成为高频词。大模型应用加速贵金属新材料研发，同时AI产业崛起增加对铂族等贵金属的需求，二者双向赋能成为行业关注焦点。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://slashdot.org/story/26/10/29/1644224/doordash-strikes-17-billion-deal-for-us-rival-instacart?utm_source=rss1.0mainlinkanon&amp;utm_medium=feed" target="_blank" rel="noopener"><span class="at">DoorDash拟170亿美元收购Instacart</span><div class="by">Slashdot</div><p class="as">DoorDash同意以约170亿美元收购美国生鲜配送对手Instacart，拓展餐饮外卖以外的美国杂货市场。交易预计2027年底至2028年上半年完成，可能因配送行业进一步整合而面临监管审查。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-8"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>🚀 创业与产品</h2><span class="ed">第 8 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://techcrunch.com/2026/10/29/superme-raises-20m-for-its-network-of-ai-expert-profiles/" target="_blank" rel="noopener"><span class="at">AI专家档案平台SuperMe融资2000万美元</span><div class="by">TechCrunch</div><p class="as">SuperMe完成2000万美元融资，其平台基于真实专家知识构建AI档案。用户提问时系统判断最适合的专家，并用其AI档案发起群聊，试图让专业知识以可交互方式变现和传播。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/openai-backed-thrive-holdings-acquires-adt/" target="_blank" rel="noopener"><span class="at">OpenAI支持的Thrive Holdings以153亿美元收购ADT</span><div class="by">TechCrunch</div><p class="as">由OpenAI支持的Thrive Holdings宣布以153亿美元收购家庭安防公司ADT，并计划将AI引入家庭安全业务。交易显示资本正在推动传统安防行业智能化升级，也扩大OpenAI生态在消费级场景的落点。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/agent-identity-startup-mintive-lands-cowboy-ventures-coatue-angels-jeff-dean-andrej-karpathy/" target="_blank" rel="noopener"><span class="at">AI代理身份管理创业公司Mintive获Cowboy、Coatue等投资</span><div class="by">TechCrunch</div><p class="as">Mintive获Cowboy Ventures、Coatue及Jeff Dean、Andrej Karpathy等天使投资。公司由前Google Brain和Coursera工程师创立，平台帮助企业IT管理AI代理身份与权限，应对代理安全治理需求。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/the-r2-suv-is-already-rivians-best-selling-vehicle/" target="_blank" rel="noopener"><span class="at">Rivian R2 SUV成为其最畅销车型</span><div class="by">TechCrunch</div><p class="as">Rivian新款R2 SUV销量强劲，已成为公司最畅销车型，推动其年内第二次上调业绩指引。R2定位更亲民，扩大用户群，显示Rivian在中端电动SUV市场取得突破，缓解资金和交付压力。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.ign.com/articles/solos-airgo-v2-smart-glasses" target="_blank" rel="noopener"><span class="at">Solos AirGo V2智能眼镜：模块化设计与AI功能</span><div class="by">IGN</div><p class="as">Solos推出AirGo V2智能眼镜，配备隐蔽摄像头、全天续航，模块化设计集成强大AI功能。产品面向日常佩戴和轻量AI交互，试图在可穿戴AI设备市场提供更舒适的体验。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://developer.apple.com/news/?id=w9mxlhek" target="_blank" rel="noopener"><span class="at">苹果大幅下调台湾App Store佣金4个百分点</span><div class="by">Daring Fireball/Apple</div><p class="as">苹果宣布自2026年10月31日起，将台湾地区App Store标准应用内购买和付费应用佣金率从30%下调至26%。此举是在与台湾公平交易委员会讨论后做出，回应监管压力并减轻开发者负担。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/gm-reaches-220m-settlement-over-selling-drivers-private-data/" target="_blank" rel="noopener"><span class="at">通用汽车就出售车主隐私数据达成2.2亿美元和解</span><div class="by">TechCrunch</div><p class="as">通用汽车同意支付2.2亿美元，就其出售车主驾驶和位置隐私数据的指控达成和解。根据和解，通用汽车在收集或共享车主的驾驶和位置数据前必须获得明确同意，为汽车数据隐私保护树立案例。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://techcrunch.com/2026/10/29/where-was-my-invite-to-the-wait-what-airbnb-had-a-gala/" target="_blank" rel="noopener"><span class="at">Airbnb举办首届慈善晚宴，互联网一片问号</span><div class="by">TechCrunch</div><p class="as">Airbnb旗下非营利组织在洛杉矶举行首届慈善晚宴，引发社交媒体对其定位和活动目的的讨论。网民对共享住宿平台涉足慈善晚宴感到意外，公司尚未详细说明资金用途和长期目标。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-9"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>🎮 游戏</h2><span class="ed">第 9 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://www.gcores.com/articles/221610" target="_blank" rel="noopener"><span class="at">国产3A武侠游戏《影之刃零》正式发售</span><div class="by">机核</div><p class="as">由灵游坊研发、虚幻5引擎打造的武侠动作游戏《影之刃零》10月29日正式发售，登陆PS5、PS5 Pro及PC多平台。游戏上线后热度高涨，Steam国区标准版售价268元，成为当日最受关注国产单机作品。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221509" target="_blank" rel="noopener"><span class="at">机核专访《禁闭求生2》执行制作人：成年人为什么仍想要冒险</span><div class="by">机核</div><p class="as">机核专访黑曜石《禁闭求生2》执行制作人，讨论生存冒险游戏如何唤醒玩家童年般的好奇与冒险欲。游戏延续缩小至昆虫视角的设定，在后院危机中探索、收集、建造，强化合作与叙事体验。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221659" target="_blank" rel="noopener"><span class="at">2026年10月网络游戏审批公布：195款游戏获发版号</span><div class="by">机核</div><p class="as">国家新闻出版署公布10月网络游戏审批信息，共195款游戏获得版号，包括183款国产和12款进口游戏。《少女前线：蓝蝶契约》《战争前线：突围》等作品过审，行业供给持续稳定。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221657" target="_blank" rel="noopener"><span class="at">FromSoftware NS2独占游戏《黄昏血族》延期至2027年</span><div class="by">机核</div><p class="as">FromSoftware宣布原定2026年底发售的Switch 2独占游戏《黄昏血族》延期至2027年。团队表示参考网络测试反馈，决定重点优化战斗、战略深度和玩家表达，以打磨更高品质。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221656" target="_blank" rel="noopener"><span class="at">合作冒险游戏《掘地求狗》将登陆主机</span><div class="by">机核</div><p class="as">Daedalic与德国开发团队Quad Head宣布，合作洞穴冒险游戏《掘地求狗》将于2027年初登陆PS5、Xbox Series和主机平台。游戏以物理驱动合作玩法为特色，此前在PC获特别好评。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221655" target="_blank" rel="noopener"><span class="at">《护林员之路：国家公园模拟器》正式版11月17日推出</span><div class="by">机核</div><p class="as">模拟游戏《护林员之路：国家公园模拟器》将于11月17日推出正式版。玩家在国家公园中巡逻，追踪双足巨兽足迹、识别未知动物毛发，并调查自然照片中的模糊身影，体验护林员日常与超自然谜团交织的冒险。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221654" target="_blank" rel="noopener"><span class="at">第一人称多人街机篮球《友尽大扣篮》官宣，2027年登陆Steam</span><div class="by">机核</div><p class="as">独立工作室Katapult Games公布第一人称多人篮球游戏《友尽大扣篮》，计划2027年登陆Steam。游戏强调操作技巧、团队协作和物理碰撞，既有精彩进球也有爆笑失误，定位欢乐街机篮球体验。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221652" target="_blank" rel="noopener"><span class="at">温馨治愈MMO《灵渡之境》11月16日发售</span><div class="by">机核</div><p class="as">Spry Fox宣布奇幻风格在线多人游戏《灵渡之境》将于11月16日登陆Switch、Switch 2及PC平台Steam和Epic Games Store。游戏主打温馨治愈的社交探索，并发布新预告展示奇妙世界。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221653" target="_blank" rel="noopener"><span class="at">《星际迷航：航海家号-穿越未知》DLC“德尔塔编年史2”上线</span><div class="by">机核</div><p class="as">Daedalic与gameXcite推出《星际迷航：航海家号-穿越未知》第三款DLC“德尔塔编年史2”，可单独购买或通过扩展通行证获得。为庆祝上线，游戏本体在Steam开启促销。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221638" target="_blank" rel="noopener"><span class="at">《逃离塔科夫》实装万圣节活动：感染者加入战局</span><div class="by">机核</div><p class="as">Battlestate Games公布《逃离塔科夫》万圣节主题活动，致命病毒蔓延城市，感染者加入战局；竞技场引入近战搏杀模式，玩家佩戴死亡面具用近战武器对战，致敬经典恐怖电影。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221631" target="_blank" rel="noopener"><span class="at">《鬼灭之刃 火之神血风谭2 NS2版+角色通行证》发售</span><div class="by">机核</div><p class="as">世嘉宣布由Aniplex制作的主机游戏《鬼灭之刃 火之神血风谭2 Nintendo Switch 2 Edition + 角色通行证》于10月29日正式发售，为Switch 2玩家带来内容整合版本。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221630" target="_blank" rel="noopener"><span class="at">小轮车送信冒险《狸狸：胖哒的夏日》定档11月10日</span><div class="by">机核</div><p class="as">京都团队Denkiworks开发、CRITICAL REFLEX发行的开放世界小轮车送信游戏《狸狸：胖哒的夏日》定档11月10日，将登陆Steam、Switch、Xbox Series X|S及Game Pass，以轻松夏日冒险为主题。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/articles/221620" target="_blank" rel="noopener"><span class="at">《麦琪的花园》EA版10月29日发布</span><div class="by">机核</div><p class="as">融合RPG、开放世界生存建造与玩家自创角色的《麦琪的花园》于10月29日在EA阶段发布。游戏允许玩家塑造独特角色，在自由创造与冒险中找到个人乐趣，适合喜欢沙盒玩法的用户。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.eurogamer.net/modern-warfare-4-south-korean-crowd-crush-footage" target="_blank" rel="noopener"><span class="at">《使命召唤：现代战争4》开场被指使用梨泰院踩踏真实影像</span><div class="by">Eurogamer</div><p class="as">动视因《现代战争4》开场出现韩国梨泰院踩踏事故真实影像而受到批评。遇难者家属协会及玩家表示强烈不满，认为使用真实灾难画面不妥。动视尚未作出正式回应，事件持续发酵。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.ign.com/articles/gears-of-war-e-day-reportedly-sold-over-400k-copies-across-console-and-pc-a-month-after-day-one-game-pass-launch" target="_blank" rel="noopener"><span class="at">《战争机器：E-Day》首发加入Game Pass仍售出超40万份</span><div class="by">IGN</div><p class="as">消息称《战争机器：E-Day》在首发加入Game Pass后一个月内仍售出超过40万份，覆盖主机和PC平台。这一数据优于外部分析预期，显示核心玩家仍愿意为独占大作付费，Game Pass未完全替代买断销售。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-10"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>🎬 文化娱乐</h2><span class="ed">第 10 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722874.shtml" target="_blank" rel="noopener"><span class="at">姆巴佩涉华不当言论持续发酵，西甲主席考虑前往中国</span><div class="by">中新网</div><p class="as">法国球员姆巴佩发表涉华不当言论后，多个品牌终止合作，相关平台暂停西甲转播。姆巴佩和皇马先后致歉，但风波未平，西甲主席据报考虑前往中国沟通，媒体估算西甲每赛季潜在损失约1亿欧元。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.chinanews.com.cn/gj/2026/10-29/10722785.shtml" target="_blank" rel="noopener"><span class="at">三丽鸥日本官网致歉，终止与日剧《VIVANT》联名</span><div class="by">中新网</div><p class="as">因与抹黑中国的日剧《VIVANT》联名引发强烈反感，三丽鸥日本官网10月29日发布取消联名活动的通知并致歉。三丽鸥表示认真对待各方意见，终止相关产品合作以回应消费者情感。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.zhihu.com/question/2098435655415984511" target="_blank" rel="noopener"><span class="at">中国麻将在美国爆火，400美元套装仍排队抢购</span><div class="by">知乎</div><p class="as">美国全国公共广播电台报道中国麻将走红，江苏作坊生产的麻将以400美元套装在美国供不应求。这股风潮源于社交媒体传播和跨文化娱乐需求，麻将的社交性和可收藏性使其具备独特出海潜力。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.gcores.com/radios/221133" target="_blank" rel="noopener"><span class="at">机核播客《怀念刘欢》：从音乐创作到陪伴几代人的声音</span><div class="by">机核</div><p class="as">机核播客推出纪念音乐人刘欢的节目，主持人与嘉宾回顾其音乐创作、生平故事和作品背后的想法。节目从熟悉的歌曲切入，探讨刘欢如何用声音陪伴听众多年，以及他对音乐的理解与选择。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.ign.com/articles/frank-miller-teases-sin-city-future-and-finally-drawing-teenage-mutant-ninja-turtles" target="_blank" rel="noopener"><span class="at">弗兰克·米勒透露《罪恶之城》未来计划与《忍者神龟》创作</span><div class="by">IGN</div><p class="as">漫画大师弗兰克·米勒在采访中透露《罪恶之城》新长篇漫画的筹备进展，并谈到时隔四十年终于绘制《忍者神龟》的乐趣。新作将延续其标志性视觉风格，引发漫画读者期待。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.ign.com/articles/james-gunn-says-it-wont-be-too-long-before-dcu-batman-is-cast-will-be-close-in-age-to-david-corenswets-superman" target="_blank" rel="noopener"><span class="at">詹姆斯·古恩：DCU蝙蝠侠选角不会太久，年龄接近超人</span><div class="by">IGN</div><p class="as">DC影业联合CEO詹姆斯·古恩表示，DCU蝙蝠侠选角即将启动，时间不会太久。该角色年龄将接近大卫·科伦斯韦特饰演的超人，暗示两人未来将展开长期合作，为DCU扩展奠定基础。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.ign.com/articles/pubg-is-getting-a-live-action-series-on-netflix-written-directed-by-and-starring-donald-glover" target="_blank" rel="noopener"><span class="at">PUBG真人剧将登陆Netflix，唐纳德·格洛弗自编自导自演</span><div class="by">IGN</div><p class="as">Netflix将推出《绝地求生》真人剧集，由唐纳德·格洛弗编剧、导演并主演。该剧改编自Krafton热门战术竞技游戏，目前剧情细节有限，但格洛弗的参与让项目备受关注。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.zhihu.com/question/2099145641355994025" target="_blank" rel="noopener"><span class="at">医学生在大体老师骨骼上写轻浮文字引教育反思</span><div class="by">知乎</div><p class="as">有医学生在社交平台发布在大体老师骨骼标本上写“死了骨头还要被我玩”等轻浮文字，引发对医学人文教育缺失的批评。事件暴露部分学生对遗体捐献和生命尊严缺乏敬畏，亟需加强职业伦理和纪念教育。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.zhihu.com/question/2096181923823482128" target="_blank" rel="noopener"><span class="at">高速电子屏提示应急道可用，司机借用仍被罚</span><div class="by">知乎</div><p class="as">有司机根据高速电子屏“应急车道可用”提示借用应急车道，事后却被违法记录，申诉因涉及两省三部门而无果。事件暴露高速交通信息发布与执法管理衔接不畅，损害司机信任。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.zhihu.com/question/2098763874388239857" target="_blank" rel="noopener"><span class="at">红果短剧日活达1.68亿，跃升国内第四大App</span><div class="by">知乎</div><p class="as">数据公司QuestMobile援引野村报告显示，红果短剧日活跃用户达1.68亿，超过“爱优腾芒”总和，成为国内时长第四大App。其快速崛起冲击长视频和短视频平台，也引发对AI短剧和市场竞争格局的讨论。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-11"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>💬 观点·社论</h2><span class="ed">第 11 版 / 共 12 版</span></div><div class="columns"><a class="art" href="https://tech.slashdot.org/story/26/10/29/052237/please-let-the-internet-die?utm_source=rss1.0mainlinkanon&amp;utm_medium=feed" target="_blank" rel="noopener"><span class="at">“请让互联网死去”：一篇对网络现状的尖锐反思</span><div class="by">Slashdot/Wired</div><p class="as">《连线》文章提出，当前互联网已陷入深度文化衰退，被流量、垃圾信息和封闭平台侵蚀。作者以近乎挑衅的口吻呼吁正视网络的系统性失败，重新思考开放、分布式与公共利益的价值。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://marginalrevolution.com/marginalrevolution/2026/10/how-tyler-cowen-and-alex-tabarrok-have-changed-their-views-on-ai.html?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=how-tyler-cowen-and-alex-tabarrok-have-changed-their-views-on-ai" target="_blank" rel="noopener"><span class="at">泰勒·科文与亚历克斯·塔巴洛克：他们对AI观点的变化与分歧</span><div class="by">Marginal Revolution</div><p class="as">两位经济学家回顾各自对AI的认知变化，均对AI能力更加乐观，但对收益如何传导、风险权衡以及意识问题存在分歧。文章展示经济学视角下对人工智能经济潜力和治理挑战的不同判断。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://marginalrevolution.com/marginalrevolution/2026/10/ai-dominates-human-peer-reviews.html?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=ai-dominates-human-peer-reviews" target="_blank" rel="noopener"><span class="at">研究：AI生成的学术审稿意见已超过人类专家</span><div class="by">Marginal Revolution</div><p class="as">研究显示，AI生成的论文评审在多项指标上已优于高报酬人类专家撰写的意见，并获编辑和作者高度评价。作者讨论这一结果对期刊审稿政策和科研评价体系的影响，引发学术出版伦理辩论。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://martinfowler.com/bliki/LLM-Voice.html" target="_blank" rel="noopener"><span class="at">企业架构领域的LLM语音应用思考</span><div class="by">Martin Fowler</div><p class="as">马丁·福勒撰文探讨语音交互与大语言模型结合的应用潜力和限制。文章从软件架构和用户体验角度分析，认为语音交互需要更多上下文和容错设计，才能真正提升生产力工具的自然性。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://www.theautopian.com/a-typography-geek-pointed-out-something-about-the-space-shuttle-discovery-and-now-i-cant-unsee-it/" target="_blank" rel="noopener"><span class="at">发现号航天飞机右侧“s”字倒置的字体趣闻</span><div class="by">Daring Fireball</div><p class="as">一个排版爱好者指出发现号航天飞机机身上的一个字母“s”被倒置安装，引发设计史和航天机身标识的趣味讨论。该发现很快在社交媒体传播，成为一种关于细节观察与视觉习惯的轻松观点。</p><span class="more">阅读全文 →</span></a><a class="art" href="https://yro.slashdot.org/story/26/10/28/2247205/bank-of-america-kindly-asks-that-you-dont-share-your-password-with-your-ai-assistant?utm_source=rss1.0mainlinkanon&amp;utm_medium=feed" target="_blank" rel="noopener"><span class="at">美国银行提醒客户不要把密码交给AI助手</span><div class="by">Slashdot/TechCrunch</div><p class="as">美国银行向客户发送邮件，提醒切勿与任何外部服务（包括AI工具）分享用户名和密码。随着AI助手普及，网络安全专家警告用户对自动化和智能工具保持基本安全边界，防止账户信息泄露。</p><span class="more">阅读全文 →</span></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div><div class="sheet" id="page-12"><div class="peel" title="回到顶部"></div><div class="pagehead"><h2>🎁 Epic 免费游戏</h2><span class="ed">第 12 版 / 共 12 版</span></div><div class="epic"><a href="https://store.epicgames.com/zh-CN/p/idle-champions-of-the-forgotten-realms" target="_blank" rel="noopener"><img src="https://cdn1.epicgames.com/spt-assets/a53f91e55c6840018cb5de0b204f1ad9/idle-champions-of-the-forgotten-realms-1xbn9.jpg" alt=""><div class="ec"><div class="et">《Idle Champions of the Forgotten Realms》</div><div class="em">⏳ 即将免费　截止 2026/11/12 16:00:00　<s>0</s> 免费</div></div></a><a href="https://store.epicgames.com/zh-CN/p/sorry-were-closed-724c86" target="_blank" rel="noopener"><img src="https://cdn1.epicgames.com/spt-assets/9ab7eaaeb2f041969b350955b789f0f7/sorry-were-closed-1orqh.png" alt=""><div class="ec"><div class="et">《Sorry We’re Closed》</div><div class="em">🎁 免费领取中　截止 2026/11/05 16:00:00　<s>¥78.00</s> 免费</div></div></a><a href="https://store.epicgames.com/zh-CN/p/flotsam-266287" target="_blank" rel="noopener"><img src="https://cdn1.epicgames.com/spt-assets/5c36b876e80d4285b9993947efeeaf2b/flotsam-1yczl.jpg" alt=""><div class="ec"><div class="et">浮游世界</div><div class="em">⏳ 即将免费　截止 2026/11/12 16:00:00　<s>¥75.00</s> 免费</div></div></a></div><div class="colophon"><a href="#page-1">← 返回头版</a><a href="../archive.html">往期 →</a></div></div>
+</div>
+<script>var __weather={data:{"北京": "晴，气温6~18℃，昼夜温差大，白天晴朗舒适，早晚偏凉。\n🌅 早晨（~8:00）：气温6℃，体感4℃左右，偏冷，建议穿厚外套或薄羽绒，骑车可戴手套；天气晴，无需带伞，紫外线不强。\n☀️ 中午（~12:00）：气温15℃左右，午后最高18℃，体感较舒适，可脱掉厚外套，穿长袖或薄毛衣。\n🌇 傍晚（~18:00）：气温17℃，体感约12℃，东南风小，凉意渐起，建议加件风衣或薄外套。\n🌙 夜间（~21:00）：气温10℃，体感7℃，晴朗少云，温差大，出门记得加衣，睡觉盖薄被。\n洗车和运动指数极佳，空气良，适合户外活动和洗车。", "上海": "早晨有雾，上午转晴，气温18~22℃，整体温暖，但空气质量轻度污染。\n🌅 早晨（~8:00）：气温18℃，体感18℃，有雾，湿度大，建议穿薄外套或长袖；雾中无需防晒，但敏感人群外出可戴口罩。\n☀️ 中午（~12:00）：气温21℃，体感24℃，阳光渐强，紫外线中等，外出记得涂防晒霜，可穿短袖或薄长袖。\n🌇 傍晚（~18:00）：气温21℃，体感23℃，南风轻柔，温暖舒适，不用急着加衣。\n🌙 夜间（~21:00）：气温18℃，体感18℃，夜凉不明显，备件薄外套即可。\n洗车指数一般，运动较好，旅游尚可；空气质量轻度污染，敏感人群减少长时间户外活动。", "广州": "晴热天气，气温23~32℃，体感闷热，白天注意防暑防晒。\n🌅 早晨（~8:00）：气温23℃，体感28℃，已经有些闷热，建议穿短袖或薄衫，可涂防晒霜；晴天无需带伞。\n☀️ 中午（~12:00）：气温28~32℃，体感33~34℃，炎热感明显，外出穿透气衣物、戴帽子，及时补水，避免长时间暴晒。\n🌇 傍晚（~18:00）：气温29℃，体感31℃，仍然较热，无需加衣，建议继续补水。\n🌙 夜间（~21:00）：气温25℃，体感28℃，夜间也不凉快，可开空调或风扇，睡觉盖薄毯即可。\n洗车和运动指数极佳，空气良，适合晨晚锻炼和洗车。", "深圳": "晴到多云，气温24~30℃，体感湿热，空气优，适合出行。\n🌅 早晨（~8:00）：气温24℃，体感27℃，温暖湿润，建议穿短袖或薄衫，涂防晒霜；晴天不用带伞。\n☀️ 中午（~12:00）：气温28~30℃，体感32℃左右，闷热明显，外出注意补水和防晒，穿透气衣物，减少暴晒。\n🌇 傍晚（~18:00）：气温28℃，体感28℃，有南风，体感稍缓解，不用加衣。\n🌙 夜间（~21:00）：气温25℃，体感28℃，温暖潮湿，适合开空调或风扇，睡觉盖薄被。\n空气质量优，洗车、运动和旅游指数极佳，适合户外活动。", "成都": "多云转晴，气温15~22℃，湿度稍大，整体比较舒适。\n🌅 早晨（~8:00）：气温15℃，体感16℃，偏凉但不冷，建议穿薄外套或针织衫；早晨云多，暂不需要防晒。\n☀️ 中午（~12:00）：气温21℃，体感18℃，东北风稍凉，可穿长袖，紫外线中等，外出涂防晒霜。\n🌇 傍晚（~18:00）：气温19℃，体感22℃，体感温暖，可披件薄外套。\n🌙 夜间（~21:00）：气温17℃，体感17℃，夜凉轻至，出门建议加薄外套。\n洗车和运动指数极佳，空气良，适合户外运动和洗车。", "杭州": "晴到多云，气温16~24℃，温暖舒适，适合外出活动。\n🌅 早晨（~8:00）：气温16℃，体感17℃，微凉，建议穿薄外套或长袖衬衫；晴天不需带伞。\n☀️ 中午（~12:00）：气温24℃，体感26℃，稍暖，紫外线中等，外出涂防晒霜，可穿短袖或单层长袖。\n🌇 傍晚（~18:00）：气温22℃，体感24℃，舒适宜人，不必急着加衣。\n🌙 夜间（~21:00）：气温19℃，体感19℃，夜凉轻，建议加件薄外套。\n洗车和运动指数极佳，空气良，适合户外锻炼和洗车。", "武汉": "早晨有雾，上午转晴，气温16~23℃，湿度大，午后体感暖热。\n🌅 早晨（~8:00）：气温16℃，体感16℃，湿度接近100%，有雾，能见度低，外出注意交通安全；穿薄外套或长袖，暂不用防晒。\n☀️ 中午（~12:00）：气温19~23℃，体感24~26℃，湿度大，有些闷热，建议穿透气长袖，紫外线中等，外出可涂防晒霜。\n🌇 傍晚（~18:00）：气温20℃，体感23℃，舒适，可以不加衣。\n🌙 夜间（~21:00）：气温16℃，体感16℃，湿度较大，湿凉感明显，建议加薄外套。\n洗车和运动指数较好，感冒少发，雾散后适合户外活动。", "重庆": "早晨和夜间有小雨，白天多云，气温16~20℃，温差小，空气优。\n🌅 早晨（~8:00）：气温16℃，体感17℃，有小雨，记得带伞，穿薄外套或防水外套，路面湿滑注意脚下。\n☀️ 中午（~12:00）：气温19℃，体感18℃，雨停转多云，外出最好备伞，紫外线弱，不用特别防晒。\n🌇 傍晚（~18:00）：气温20℃，体感19℃，多云，舒适，可穿薄外套。\n🌙 夜间（~21:00）：气温19℃，体感18℃，又有小雨，出门带伞，加件薄外套。\n空气质量优，洗车较好，运动、旅游指数较好，感冒少发。", "南京": "城市：南京市\n当前天气：雾，气温 16°C，体感 16°C\n风向：西风 2级，湿度 87%\n紫外线指数：4，空气质量：58（良）\n\n关键时段预报：\n  8:00（早晨）：晴 16°C 体感14°C 东南风2级\n  12:00（中午）：晴 18°C 体感22°C 西风2级\n  15:00（下午）：晴 22°C 体感23°C 西南风2级\n  18:00（傍晚）：晴 17°C 体感18°C 西南风2级\n  21:00（夜间）：晴 14°C 体感16°C 东南风2级\n\n生活指数：穿衣：微凉；防晒：中等；洗车：较好；运动：较好；旅游：较好；感冒：少发", "西安": "城市：西安市\n当前天气：晴，气温 10°C，体感 9°C\n风向：南风 1级，湿度 59%\n紫外线指数：4，空气质量：73（良）\n\n关键时段预报：\n  8:00（早晨）：多云 11°C 体感11°C 西南风2级\n  12:00（中午）：晴 13°C 体感17°C 东南风2级\n  15:00（下午）：晴 18°C 体感21°C 东南风2级\n  18:00（傍晚）：晴 17°C 体感16°C 北风2级\n  21:00（夜间）：晴 14°C 体感12°C 东北风2级\n\n生活指数：穿衣：冷；防晒：中等；洗车：极佳；运动：极佳；旅游：较好；感冒：少发", "苏州": "城市：苏州市\n当前天气：雾，气温 17°C，体感 17°C\n风向：西风 2级，湿度 86%\n紫外线指数：4，空气质量：98（良）\n\n关键时段预报：\n  8:00（早晨）：阴 17°C 体感16°C 东南风2级\n  12:00（中午）：晴 19°C 体感22°C 西风2级\n  15:00（下午）：晴 21°C 体感23°C 西风2级\n  18:00（傍晚）：晴 18°C 体感18°C 西南风2级\n  21:00（夜间）：多云 15°C 体感17°C 东南风1级\n\n生活指数：穿衣：微凉；防晒：中等；洗车：较好；运动：较好；旅游：较好；感冒：少发", "天津": "城市：天津\n当前天气：中度霾，气温 14°C，体感 12°C\n风向：西南风 2级，湿度 43%\n紫外线指数：4，空气质量：113（轻度污染）\n\n关键时段预报：\n  8:00（早晨）：晴 9°C 体感5°C 东北风4级\n  12:00（中午）：晴 17°C 体感17°C 西北风4级\n  15:00（下午）：晴 19°C 体感19°C 西北风4级\n  18:00（傍晚）：晴 17°C 体感13°C 南风3级\n  21:00（夜间）：晴 13°C 体感9°C 东南风4级\n\n生活指数：穿衣：凉；防晒：中等；洗车：一般；运动：较好；旅游：尚可；感冒：少发", "郑州": "城市：郑州市\n当前天气：晴，气温 15°C，体感 13°C\n风向：西风 2级，湿度 48%\n紫外线指数：4，空气质量：120（轻度污染）\n\n关键时段预报：\n  8:00（早晨）：晴 10°C 体感12°C 东风2级\n  12:00（中午）：晴 18°C 体感22°C 西风2级\n  15:00（下午）：晴 23°C 体感24°C 西风2级\n  18:00（傍晚）：晴 19°C 体感19°C 西风1级\n  21:00（夜间）：晴 12°C 体感14°C 南风1级\n\n生活指数：穿衣：凉；防晒：中等；洗车：一般；运动：极佳；旅游：尚可；感冒：少发", "长沙": "城市：长沙市\n当前天气：晴，气温 19°C，体感 19°C\n风向：北风 3级，湿度 83%\n紫外线指数：4，空气质量：60（良）\n\n关键时段预报：\n  8:00（早晨）：多云 20°C 体感23°C 东风2级\n  12:00（中午）：晴 22°C 体感25°C 南风2级\n  15:00（下午）：晴 24°C 体感27°C 西风2级\n  18:00（傍晚）：晴 23°C 体感24°C 西风1级\n  21:00（夜间）：晴 20°C 体感19°C 西南风2级\n\n生活指数：穿衣：微凉；防晒：中等；洗车：极佳；运动：极佳；旅游：较好；感冒：少发", "东莞": "城市：东莞市\n当前天气：晴，气温 27°C，体感 29°C\n风向：东北风 2级，湿度 72%\n紫外线指数：5，空气质量：96（良）\n\n关键时段预报：\n  8:00（早晨）：晴 26°C 体感25°C 东风2级\n  12:00（中午）：晴 28°C 体感32°C 东北风2级\n  15:00（下午）：晴 32°C 体感33°C 东北风2级\n  18:00（傍晚）：晴 30°C 体感29°C 东南风1级\n  21:00（夜间）：晴 28°C 体感26°C 东南风2级\n\n生活指数：穿衣：很热；防晒：中等；洗车：极佳；运动：极佳；旅游：较好；感冒：少发", "青岛": "城市：青岛市\n当前天气：晴，气温 18°C，体感 15°C\n风向：西南风 4级，湿度 53%\n紫外线指数：4，空气质量：96（良）\n\n关键时段预报：\n  8:00（早晨）：晴 12°C 体感12°C 东北风4级\n  12:00（中午）：晴 18°C 体感19°C 西风4级\n  15:00（下午）：晴 21°C 体感21°C 西南风4级\n  18:00（傍晚）：晴 20°C 体感16°C 南风4级\n  21:00（夜间）：晴 15°C 体感15°C 南风4级\n\n生活指数：穿衣：凉；防晒：中等；洗车：极佳；运动：极佳；旅游：较好；感冒：少发", "昆明": "城市：昆明市\n当前天气：多云，气温 18°C，体感 16°C\n风向：西南风 4级，湿度 76%\n紫外线指数：5，空气质量：30（优）\n\n关键时段预报：\n  8:00（早晨）：晴 14°C 体感12°C 西南风4级\n  12:00（中午）：多云 20°C 体感22°C 西南风4级\n  15:00（下午）：晴 23°C 体感24°C 西风4级\n  18:00（傍晚）：晴 22°C 体感23°C 西南风4级\n  21:00（夜间）：晴 17°C 体感17°C 西南风4级\n\n生活指数：穿衣：微凉；防晒：中等；洗车：极佳；运动：极佳；旅游：极佳；感冒：少发", "厦门": "城市：厦门市\n当前天气：晴，气温 24°C，体感 25°C\n风向：北风 2级，湿度 68%\n紫外线指数：5，空气质量：47（优）\n\n关键时段预报：\n  8:00（早晨）：晴 22°C 体感23°C 东北风4级\n  12:00（中午）：晴 28°C 体感30°C 西南风5级\n  15:00（下午）：晴 28°C 体感29°C 东南风5级\n  18:00（傍晚）：晴 25°C 体感25°C 东风5级\n  21:00（夜间）：晴 24°C 体感24°C 东北风5级\n\n生活指数：穿衣：舒适；防晒：中等；洗车：极佳；运动：极佳；旅游：极佳；感冒：少发"},cities:["北京", "上海", "广州", "深圳", "成都", "杭州", "武汉", "重庆", "南京", "西安", "苏州", "天津", "郑州", "长沙", "东莞", "青岛", "昆明", "厦门"],default:"北京"}</script>
+<script>
+(function(){
+  var motionQuery=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)');
+  var reduceMotion=!!(motionQuery&&motionQuery.matches);
+  var fine=window.matchMedia&&window.matchMedia('(pointer:fine)').matches;
+  var root=document.documentElement;
+  var sheets=Array.prototype.slice.call(document.querySelectorAll('.sheet'));
+  sheets.forEach(function(sheet){
+    var peel=sheet.querySelector('.peel');
+    if(peel&&peel.tagName!=='A') peel.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+  });
+  function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
+  function storeGet(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}}
+  function storeSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+  function S(k,c){return {x:0,v:0,t:0,k:k,c:c};}
+  function stepSpring(s,dt){
+    var f=-s.k*(s.x-s.t)-s.c*s.v;
+    s.v+=f*dt;
+    s.x+=s.v*dt;
+  }
+  var controllers=sheets.map(function(sheet,i){
+    sheet.style.willChange='transform';
+    sheet.style.transformStyle='preserve-3d';
+    return {
+      sheet:sheet,index:i,
+      px:.5,py:.4,over:false,
+      rx:S(90,12),
+      ry:S(90,12),
+      rz:S(80,11),
+      ty:S(70,9)
+    };
+  });
+  var intensity=clamp(parseFloat(storeGet('dispatch_settle_intensity_v2','1'))||0,0,2);
+  var drapeIntensity=clamp(parseFloat(storeGet('dispatch_drape_intensity_v7','.25'))||0,0,2);
+  var manualOff=storeGet('dispatch_settle_motion_off_v2','0')==='1';
+  var raf=0,lastFrame=0,lastImpulse=0,hoverProxy=null;
+  var hoverProxySelector='.lead-main,.lead-rest .hl,.index a,.art,.colophon a';
+  var replay=document.querySelector('.settle-replay');
+  var intensityInput=document.querySelector('.settle-intensity');
+  var intensityValue=document.querySelector('.settle-intensity-value');
+  var motionToggle=document.querySelector('.settle-motion');
+  function motionAllowed(){return !reduceMotion&&!manualOff;}
+  function settleOn(){return motionAllowed()&&intensity>0;}
+  function drapeOn(){return motionAllowed()&&fine&&drapeIntensity>0;}
+  function render(c){
+    c.sheet.style.transform='rotateX('+c.rx.x.toFixed(3)+'deg) rotateY('+c.ry.x.toFixed(3)+'deg) rotateZ('+c.rz.x.toFixed(3)+'deg) translateY('+c.ty.x.toFixed(2)+'px)';
+  }
+  function zeroAxis(a){a.x=a.t;a.v=0;}
+  function flatten(c){
+    c.rx.t=0;c.ry.t=0;c.rz.t=0;c.ty.t=0;
+    zeroAxis(c.rx);zeroAxis(c.ry);zeroAxis(c.rz);zeroAxis(c.ty);
+    c.sheet.style.transform='';
+  }
+  function rest(c){
+    zeroAxis(c.rx);zeroAxis(c.ry);zeroAxis(c.rz);zeroAxis(c.ty);
+    if(Math.abs(c.rx.x)>.001||Math.abs(c.ry.x)>.001||Math.abs(c.rz.x)>.001||Math.abs(c.ty.x)>.001)render(c);
+    else c.sheet.style.transform='';
+  }
+  function flattenAll(){if(raf){cancelAnimationFrame(raf);raf=0;}lastFrame=0;controllers.forEach(flatten);}
+  function scheduleSprings(){if(!raf){lastFrame=0;raf=requestAnimationFrame(stepSprings);}}
+  function syncControls(){
+    document.body.classList.toggle('motion-off',!motionAllowed());
+    if(intensityInput) intensityInput.value=String(intensity);
+    if(intensityValue) intensityValue.textContent=intensity.toFixed(1);
+    if(motionToggle){
+      motionToggle.checked=!manualOff&&!reduceMotion;
+      motionToggle.disabled=reduceMotion;
+      motionToggle.title=reduceMotion?'系统已开启减少动态效果':'';
+    }
+    if(replay) replay.disabled=!settleOn();
+    if(!motionAllowed()){
+      root.classList.add('settle-ready');
+      flattenAll();
+    }
+  }
+  function impulse(c,scale){
+    if(!settleOn())return;
+    var sign=c.index%2?-1:1;
+    var I=intensity*(scale==null?1:scale);
+    c.rx.x+=4.2*I*sign;c.rx.v+=-30*I*sign;
+    c.ry.x+=-2.0*I*sign;c.ry.v+=14*I*sign;
+    c.rz.x+=-3.0*I*sign;c.rz.v+=9*I*sign;
+    c.ty.x=-32*I;c.ty.v=0;
+    render(c);
+  }
+  function settleImpulse(targets,scale){
+    if(!targets||!targets.length)return;
+    root.classList.add('settle-ready');
+    if(!settleOn()){if(!motionAllowed())targets.forEach(flatten);return;}
+    lastImpulse=performance.now();
+    targets.forEach(function(c){impulse(c,scale);});
+    scheduleSprings();
+  }
+  function applyDrapeTarget(c){
+    if(drapeOn()&&c.over){
+      c.ry.t=clamp((c.px-.5)*3.4*drapeIntensity,-3.4,3.4);
+      c.rx.t=clamp((c.py-.4)*-2.8*drapeIntensity,-2.8,2.8);
+    }else{
+      c.ry.t=0;c.rx.t=0;
+    }
+  }
+  function axisMoving(a,epsX,epsV){
+    if(Math.abs(a.x-a.t)<epsX&&Math.abs(a.v)<epsV){a.x=a.t;a.v=0;return false;}
+    return true;
+  }
+  function integrate(c,dt){
+    var moving=false,remaining=dt;
+    while(remaining>0){
+      var dtStep=Math.min(remaining,1/120);
+      stepSpring(c.rx,dtStep);stepSpring(c.ry,dtStep);stepSpring(c.rz,dtStep);stepSpring(c.ty,dtStep);
+      remaining-=dtStep;
+    }
+    moving=axisMoving(c.rx,.018,.04)||moving;
+    moving=axisMoving(c.ry,.018,.04)||moving;
+    moving=axisMoving(c.rz,.018,.04)||moving;
+    moving=axisMoving(c.ty,.05,.08)||moving;
+    return moving;
+  }
+  function stepSprings(now){
+    raf=0;
+    if(!motionAllowed()){flattenAll();return;}
+    if(!lastFrame)lastFrame=now;
+    var dt=Math.min((now-lastFrame)/1000,.032);
+    lastFrame=now;
+    var keepGoing=false;
+    controllers.forEach(function(c){
+      applyDrapeTarget(c);
+      var moving=integrate(c,dt);
+      var activeDrape=drapeOn()&&c.over;
+      if(moving||activeDrape){
+        render(c);
+        keepGoing=true;
+      }else{
+        rest(c);
+      }
+    });
+    if(keepGoing)raf=requestAnimationFrame(stepSprings);
+    else lastFrame=0;
+  }
+  function visibleControllers(){
+    var h=window.innerHeight||document.documentElement.clientHeight||0;
+    return controllers.filter(function(c){
+      var r=c.sheet.getBoundingClientRect();
+      return r.bottom>-120&&r.top<h+120;
+    });
+  }
+  function pointInElement(el,e,pad){
+    if(!el)return false;
+    var r=el.getBoundingClientRect(),p=pad||0;
+    if(r.width<=0||r.height<=0)return false;
+    return e.clientX>=r.left-p&&e.clientX<=r.right+p&&e.clientY>=r.top-p&&e.clientY<=r.bottom+p;
+  }
+  function linkAtPoint(e,pad){
+    var links=document.querySelectorAll(hoverProxySelector);
+    for(var i=links.length-1;i>=0;i--) if(pointInElement(links[i],e,pad||4))return links[i];
+    return null;
+  }
+  function setHoverProxy(link){
+    if(hoverProxy&&hoverProxy!==link)hoverProxy.classList.remove('hover-proxy');
+    hoverProxy=link||null;
+    if(hoverProxy)hoverProxy.classList.add('hover-proxy');
+  }
+  function isUiPoint(e){
+    var els=document.querySelectorAll('.city-picker,.physics-controls,.epic');
+    for(var i=0;i<els.length;i++) if(pointInElement(els[i],e,10))return true;
+    return false;
+  }
+  function flattenForUi(){
+    if(raf){cancelAnimationFrame(raf);raf=0;}
+    lastFrame=0;
+    controllers.forEach(function(c){c.over=false;flatten(c);});
+  }
+  function isUiTarget(e){
+    return e.target&&e.target.closest&&!!e.target.closest('.city-picker,.physics-controls,.epic');
+  }
+  if(fine){
+    window.addEventListener('mousemove',function(e){
+      var hoverLink=linkAtPoint(e,6);
+      if(hoverLink){
+        setHoverProxy(hoverLink);
+        flattenForUi();
+        return;
+      }
+      setHoverProxy(null);
+      if(isUiTarget(e)||isUiPoint(e)){
+        flattenForUi();
+        return;
+      }
+      controllers.forEach(function(c){
+        var r=c.sheet.getBoundingClientRect();
+        c.px=(e.clientX-r.left)/r.width;
+        c.py=(e.clientY-r.top)/r.height;
+        c.over=c.px>=-.05&&c.px<=1.05&&c.py>=-.05&&c.py<=1.05;
+      });
+      if(motionAllowed())scheduleSprings();
+    },{passive:true});
+    document.addEventListener('mouseleave',function(){
+      controllers.forEach(function(c){c.over=false;});
+      if(motionAllowed())scheduleSprings();
+    });
+  }
+  document.addEventListener('pointerdown',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('a[href]'))return;
+    var a=linkAtPoint(e,6);
+    if(!a)return;
+    setHoverProxy(a);
+    flattenForUi();
+  },true);
+  document.addEventListener('click',function(e){
+    if(e.defaultPrevented)return;
+    if(e.target&&e.target.closest&&e.target.closest('a[href]'))return;
+    var a=linkAtPoint(e,6);
+    if(!a)return;
+    e.preventDefault();
+    e.stopPropagation();
+    setHoverProxy(a);
+    flattenForUi();
+    if(a.target==='_blank'||e.metaKey||e.ctrlKey||e.shiftKey)window.open(a.href,'_blank','noopener');
+    else window.location.href=a.href;
+  },true);
+  if(intensityInput){
+    intensityInput.addEventListener('input',function(){
+      intensity=clamp(parseFloat(intensityInput.value)||0,0,2);
+      storeSet('dispatch_settle_intensity_v2',String(intensity));
+      syncControls();
+    });
+  }
+  if(motionToggle){
+    motionToggle.addEventListener('change',function(){
+      manualOff=!motionToggle.checked;
+      storeSet('dispatch_settle_motion_off_v2',manualOff?'1':'0');
+      syncControls();
+      if(settleOn())settleImpulse(visibleControllers());
+    });
+  }
+  if(replay)replay.addEventListener('click',function(){settleImpulse(controllers);});
+  window.paperSettle=function(scale){settleImpulse(controllers,scale);};
+  window.setPaperIntensity=function(v){
+    intensity=clamp(parseFloat(v)||0,0,2);
+    storeSet('dispatch_settle_intensity_v2',String(intensity));
+    syncControls();
+  };
+  window.setDrapeIntensity=function(v){
+    drapeIntensity=clamp(parseFloat(v)||0,0,2);
+    storeSet('dispatch_drape_intensity_v7',String(drapeIntensity));
+    if(motionAllowed())scheduleSprings();
+  };
+  if(motionQuery){
+    var onReduceChange=function(e){reduceMotion=!!e.matches;syncControls();if(settleOn())settleImpulse(visibleControllers());};
+    if(motionQuery.addEventListener)motionQuery.addEventListener('change',onReduceChange);
+    else if(motionQuery.addListener)motionQuery.addListener(onReduceChange);
+  }
+  window.addEventListener('scroll',function(){
+    setHoverProxy(null);
+    controllers.forEach(function(c){c.over=false;});
+    if(motionAllowed())scheduleSprings();
+  },{passive:true});
+  syncControls();
+  if(motionAllowed())scheduleSprings();
+  setTimeout(function(){settleImpulse(controllers,1.15);},120);
+  if(typeof __weather!=='undefined'&&__weather.data){
+    var wd=__weather.data,wc=__weather.cities,wdef=__weather.default;
+    var cur=document.querySelector('.city-current');
+    var list=document.querySelector('.city-list');
+    var txt=document.querySelector('.weather-text');
+    if(cur&&list&&txt){
+      var cityPointerHandled=false,ignoreCityDocumentClick=false,cityUserTouched=false;
+      function closeCityList(){list.className='city-list';}
+      function toggleCityList(){
+        list.className=list.className.indexOf('open')>=0?'city-list':'city-list open';
+      }
+      function setCity(c,closeAfter){
+        if(!wd[c])c=wdef;
+        cur.textContent=c;
+        txt.textContent=wd[c];
+        var buttons=list.querySelectorAll('button');
+        for(var j=0;j<buttons.length;j++) buttons[j].className=buttons[j].getAttribute('data-city')===c?'active':'';
+        if(closeAfter!==false)closeCityList();
+      }
+      function markCityPointer(){
+        cityPointerHandled=true;
+        ignoreCityDocumentClick=true;
+        setTimeout(function(){cityPointerHandled=false;ignoreCityDocumentClick=false;},1200);
+      }
+      function skipCityClick(e){
+        if(!cityPointerHandled)return false;
+        e.preventDefault();
+        e.stopPropagation();
+        cityPointerHandled=false;
+        ignoreCityDocumentClick=false;
+        return true;
+      }
+      function pickCity(e){
+        var t=e.target&&e.target.closest?e.target.closest('[data-city]'):e.target;
+        if(!t||!list.contains(t))return;
+        var c=t.getAttribute('data-city');if(!c)return;
+        cityUserTouched=true;
+        setCity(c);
+        try{localStorage.setItem('dispatch_city',c);}catch(e){}
+      }
+      function pickCityAtPoint(e){
+        var buttons=list.querySelectorAll('[data-city]');
+        for(var i=0;i<buttons.length;i++){
+          if(pointInElement(buttons[i],e,2)){
+            var c=buttons[i].getAttribute('data-city');
+            cityUserTouched=true;
+            setCity(c);
+            try{localStorage.setItem('dispatch_city',c);}catch(e){}
+            return true;
+          }
+        }
+        return false;
+      }
+      function handleCityPoint(e){
+        if(e.target&&e.target.closest&&e.target.closest('.city-picker'))return false;
+        if(pointInElement(cur,e,10)){
+          e.preventDefault();
+          e.stopPropagation();
+          flattenForUi();
+          markCityPointer();
+          cityUserTouched=true;
+          toggleCityList();
+          return true;
+        }
+        if(list.className.indexOf('open')>=0&&pickCityAtPoint(e)){
+          e.preventDefault();
+          e.stopPropagation();
+          flattenForUi();
+          markCityPointer();
+          return true;
+        }
+        return false;
+      }
+      document.addEventListener('pointerdown',function(e){
+        if(handleCityPoint(e))return;
+      },true);
+      cur.addEventListener('pointerdown',function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        flattenForUi();
+        markCityPointer();
+        cityUserTouched=true;
+        toggleCityList();
+      });
+      cur.addEventListener('click',function(e){
+        if(skipCityClick(e))return;
+        e.preventDefault();
+        e.stopPropagation();
+        flattenForUi();
+        cityUserTouched=true;
+        toggleCityList();
+      });
+      list.addEventListener('pointerdown',function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        flattenForUi();
+        markCityPointer();
+        pickCity(e);
+      });
+      list.addEventListener('click',function(e){
+        if(skipCityClick(e))return;
+        e.preventDefault();
+        e.stopPropagation();
+        flattenForUi();
+        pickCity(e);
+      });
+      document.addEventListener('pointerdown',function(e){
+        if(e.target&&e.target.closest&&e.target.closest('.city-picker'))return;
+        if(pointInElement(cur,e,10)||pointInElement(list,e,10))return;
+        closeCityList();
+      });
+      document.addEventListener('click',function(e){
+        if(ignoreCityDocumentClick){ignoreCityDocumentClick=false;cityPointerHandled=false;return;}
+        if(e.target&&e.target.closest&&e.target.closest('.city-picker'))return;
+        if(pointInElement(cur,e,10)||pointInElement(list,e,10))return;
+        closeCityList();
+      });
+      var saved=null;
+      try{saved=localStorage.getItem('dispatch_city');}catch(e){}
+      if(saved&&wd[saved]){setCity(saved,false);}
+      else{
+        setCity(wdef,false);
+        fetch('https://ip-api.com/json/?fields=city,regionName&lang=zh-CN')
+          .then(function(r){return r.json();})
+          .then(function(d){
+            if(cityUserTouched)return;
+            var loc=(d.city||'')+(d.regionName||'');
+            for(var i=0;i<wc.length;i++){
+              if(loc.indexOf(wc[i])>=0||wc[i].indexOf(d.city||'__')>=0){
+                setCity(wc[i],false);
+                try{localStorage.setItem('dispatch_city',wc[i]);}catch(e){}
+                break;
+              }
+            }
+          }).catch(function(){});
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
